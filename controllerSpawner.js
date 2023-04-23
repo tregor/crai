@@ -30,11 +30,11 @@ const spawnerController = {
             }
             if (room.energyAvailable < (200 * tier)) {
                 // console.log(`Not enough energyAvailable ${energyAvailable}/${tier*200}`)
-                continue; //Wait until tier I
+                // console.log(`energyAvailable of room ${energyAvailable}/${room.energyCapacityAvailable}`)
+                if ((room.energyAvailable / room.energyCapacityAvailable) < 0.9) {
+                    continue; // If not enought for Tier but is maxumum available
+                }
             }
-            // if ((room.energyAvailable / room.energyCapacityAvailable) > 0.9) {
-            //     continue; //Wait until max charge
-            // }
 
 
             const workers = room.find(FIND_MY_CREEPS, {

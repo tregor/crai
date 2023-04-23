@@ -6,8 +6,8 @@ module.exports = {
         STRUCTURE_SPAWN,
         STRUCTURE_EXTENSION,
         STRUCTURE_RAMPART,
-        STRUCTURE_WALL,
         STRUCTURE_ROAD,
+        STRUCTURE_WALL,
         STRUCTURE_STORAGE,
         STRUCTURE_CONTAINER,
 
