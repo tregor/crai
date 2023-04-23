@@ -47,7 +47,7 @@ module.exports = {
             const builders = creep.room.find(FIND_MY_CREEPS, {
                 filter: (builder) => builder.memory.role === 'builder'
             });
-            if (builders.length < 1) {
+            if (builders.length < creep.room.find(FIND_CONSTRUCTION_SITES).length) {
                 let constructions = [];
                 for (let priority of config.constructionSitePriority) {
                     constructions = creep.room.find(FIND_CONSTRUCTION_SITES, {

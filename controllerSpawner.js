@@ -36,13 +36,14 @@ const spawnerController = {
                 }
             }
 
-
             const workers = room.find(FIND_MY_CREEPS, {
                 filter: (worker) => worker.memory.role === 'worker'
             });
             if (workers.length < tier) {
-                spawnRole(config.defaultSpawn, creepRoles.worker, tier)
-                continue;
+                let res = spawnRole(config.defaultSpawn, creepRoles.worker, tier)
+                if (res !== ERR_NOT_ENOUGH_ENERGY) {
+                    continue;
+                }
             }
 
 
@@ -53,7 +54,7 @@ const spawnerController = {
                 const successRate = role.getSuccessRate().toFixed(2);
                 const desiredCount = calculateRequiredCreeps(existingCount, successRate);
 
-                console.log(roleName + " s: " + (successRate * 100) + "%" + ", a: " + existingCount + ", d: " + desiredCount);
+                // console.log(roleName + " s: " + (successRate * 100) + "%" + ", a: " + existingCount + ", d: " + desiredCount);
                 if ((desiredCount - existingCount) > 0) {
                     spawnRole(spawn, role, tier);
                 }
@@ -74,13 +75,12 @@ const spawnerController = {
                         target.suicide();
                     }
                 }
-
-                if ((desiredCount - existingCount) !== 0) {
-                    return;
-                }
             }
-            if (energyAvailable === room.energyCapacityAvailable) {
-                spawnRole(config.defaultSpawn, creepRoles.worker, tier)
+            if (room.energyAvailable === room.energyCapacityAvailable) {
+                let res = spawnRole(config.defaultSpawn, creepRoles.worker, tier)
+                if (res === ERR_NOT_ENOUGH_ENERGY) {
+                    spawnRole(config.defaultSpawn, creepRoles.worker, (tier - 1))
+                }
             }
         }
     },
@@ -114,8 +114,10 @@ function spawnRole(spawn, role, tier) {
         if (result === OK) {
             console.log('Spawning new worker:', creepName, ` of Tier ${tier} in room`, spawn.room.name, 'for cost', cost);
         }
+        return result;
     } else {
-        // console.log(`The cost of a ${role.roleName} of Tier ${tier} is ${cost} energy units while ${spawn.room.energyAvailable} available.`);
+        console.log(`The cost of a ${role.roleName} of Tier ${tier} is ${cost} energy units while ${spawn.room.energyAvailable} available.`);
+        return ERR_NOT_ENOUGH_ENERGY;
     }
 }
 
