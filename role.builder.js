@@ -60,7 +60,7 @@ module.exports = {
             else {
                 const energy = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
                     filter: (resource) => {
-                        return (resource.resourceType === RESOURCE_ENERGY && resource.amount > creep.store.getFreeCapacity(RESOURCE_ENERGY));
+                        return (resource.resourceType === RESOURCE_ENERGY && (resource.amount > creep.store.getFreeCapacity(RESOURCE_ENERGY)));
                     }
                 });
                 if(energy) {
