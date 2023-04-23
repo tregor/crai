@@ -40,13 +40,13 @@ module.exports = {
     getSuccessRate: function () {
         const workers = _.filter(Game.creeps, (creep) => creep.memory.role === 'miner');
         const resources = Game.spawns.Spawn1.room.find(FIND_SOURCES_ACTIVE, {
-            filter: (source) => {
-                const miners = source.pos.findInRange(FIND_MY_CREEPS, 3, {
-                    filter: (miner) => miner.memory.role === 'miner'
-                });
-                const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
-                return miners.length < 1 && enemies.length === 0 && source.energy > 0;
-            }
+            // filter: (source) => {
+            //     const miners = source.pos.findInRange(FIND_MY_CREEPS, 3, {
+            //         filter: (miner) => miner.memory.role === 'miner'
+            //     });
+            //     const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
+            //     return miners.length < 1 && enemies.length === 0 && source.energy > 0;
+            // }
         });
 
         return (workers.length / resources.length);

@@ -25,7 +25,8 @@ module.exports = {
             const haulers = creep.room.find(FIND_MY_CREEPS, {
                 filter: (hauler) => hauler.memory.role === 'hauler'
             });
-            if (haulers.length < 2){ //If count haulers <4 then help haulers
+
+            if (haulers.length <= 2) { //If count haulers <2 then help haulers
                 const targets = creep.room.find(FIND_STRUCTURES, {
                     filter: (structure) => {
                         return (structure.structureType === STRUCTURE_EXTENSION ||
@@ -34,9 +35,10 @@ module.exports = {
                             structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                     }
                 });
-                if (targets.length > 0) {
-                    if (creep.transfer(targets[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                        creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                if (targets.length) {
+                    let nearest = creep.pos.findClosestByRange(targets);
+                    if (creep.transfer(nearest, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                        creep.moveTo(nearest, {visualizePathStyle: {stroke: '#ffffff'}});
                     }
                     return;
                 }
@@ -72,7 +74,8 @@ module.exports = {
                 }
             }
 
-            if (creep.room.controller.progressTotal > 0 && creep.room.controller.level < 2) {
+            // if ((creep.room.controller.progressTotal - creep.room.controller.progress) > 0 && creep.room.controller.level < 3) {
+            if (creep.room.controller.level < 3) {
                 if (creep.transfer(creep.room.controller, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
                     creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
                 }
@@ -84,40 +87,39 @@ module.exports = {
         }
         // Если крип не несет ресурс
         else {
-            const sources = creep.room.find(FIND_SOURCES_ACTIVE, {
-                filter: (source) => {
-                    const miners = source.pos.findInRange(FIND_MY_CREEPS, 3, {
-                        filter: (miner) => miner.id !== creep.id
-                    });
-                    const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
-                    return miners.length < 3 && enemies.length === 0 && source.energy > 0;
+            let resources_droped = creep.room.find(FIND_DROPPED_RESOURCES, {
+                filter: (resource) => {
+                    return resource.resourceType === RESOURCE_ENERGY;
                 }
             });
-            if (sources.length > 0) {
+            if (resources_droped.length) {
+                let nearest = creep.pos.findClosestByRange(resources_droped)
+                if (creep.pickup(nearest) === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(nearest, {visualizePathStyle: {stroke: '#ffaa00'}});
+                }
+            }
+
+            const sources = creep.room.find(FIND_SOURCES_ACTIVE, {
+                filter: (source) => {
+                    const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
+                        filter: (miner) => miner.id !== creep.id
+                    });
+                    const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 4);
+                    return miners.length < 1 && enemies.length === 0 && source.energy > 0;
+                }
+            });
+            if (sources.length) {
                 // Найти ближайший источник ресурсов
                 const closestSource = creep.pos.findClosestByRange(sources);
-                let res = creep.harvest(closestSource)
-                if (res === ERR_NOT_IN_RANGE) {
-                    res = creep.moveTo(closestSource, {visualizePathStyle: {stroke: '#ffaa00'}});
-                    // console.log(res)
+                if (creep.harvest(closestSource) === ERR_NOT_IN_RANGE) {
+                    let res = creep.moveTo(closestSource, {visualizePathStyle: {stroke: '#ffaa00'}});
                     if (res === ERR_NO_PATH || res === ERR_NOT_FOUND) {
                         creep.moveTo(config.defaultSpawn);
                     }
                 }
             } else {
                 // Если ресурсов на карте нет, идем на спавн
-                let sources = creep.room.find(FIND_DROPPED_RESOURCES, {
-                    filter: (resource) => {
-                        return resource.resourceType === RESOURCE_ENERGY;
-                    }
-                });
-                if (sources.length > 0) {
-                    if (creep.pickup(sources[0]) === ERR_NOT_IN_RANGE) {
-                        creep.moveTo(sources[0], {visualizePathStyle: {stroke: '#ffaa00'}});
-                    }
-                } else {
-                    creep.moveTo(config.defaultSpawn)
-                }
+                creep.moveTo(config.defaultSpawn)
             }
         }
     },
@@ -125,6 +127,9 @@ module.exports = {
         const workers = _.filter(Game.creeps, (creep) => creep.memory.role === 'worker');
         const resources = _.filter(Game.spawns.Spawn1.room.find(FIND_DROPPED_RESOURCES));
         const structures = _.filter(Game.spawns.Spawn1.room.find(FIND_MY_CONSTRUCTION_SITES, {filter: (site) => site.progress < site.progressTotal}));
+
+
+        return (1 - (1 / Math.min(workers.length, 1)));
 
         // Вычисляем коэффициент успеха.
         const resourceRatio = workers.length / resources.length;
@@ -144,16 +149,25 @@ module.exports = {
 
         // Ограничиваем коэффициент успеха в диапазоне от 0 до 1.
         return successRate;
-        return Math.max(workers.length, 1);
     },
     getBody: function (tier) {
         this.memory.tier = tier;
+        const energy = tier * 200;
+        const carryParts = tier;
+        const workParts = tier;
+        const moveParts = tier;
         const body = [];
-        for (let i = 0; i < tier; i++) {
-            body.push(WORK);
+
+        for (let i = 0; i < carryParts; i++) {
             body.push(CARRY);
+        }
+        for (let i = 0; i < workParts; i++) {
+            body.push(WORK);
+        }
+        for (let i = 0; i < moveParts; i++) {
             body.push(MOVE);
         }
+
         return body;
     }
 };

@@ -47,17 +47,18 @@ module.exports = {
                 if (res === ERR_NOT_IN_RANGE) {
                     creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
                 }
-                return;
+
             }
         } else {
-            let sources = creep.room.find(FIND_DROPPED_RESOURCES, {
+            let sources = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 16, {
                 filter: (resource) => {
                     return resource.resourceType === RESOURCE_ENERGY;
                 }
             });
             if (sources.length > 0) {
-                if (creep.pickup(sources[0]) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(sources[0], {visualizePathStyle: {stroke: '#ffaa00'}});
+                let nearestSource = creep.pos.findClosestByRange(sources);
+                if (creep.pickup(nearestSource) === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(nearestSource, {visualizePathStyle: {stroke: '#ffaa00'}});
                 }
             } else {
                 creep.moveTo(config.defaultSpawn)
@@ -74,7 +75,7 @@ module.exports = {
     },
     /** @param {number} tier **/
     getBody: function (tier) {
-        const energy = tier * 50;
+        const energy = tier * 200;
         const carryParts = Math.max(Math.ceil((energy - 50) / 100), 1);
         const workParts = Math.max(Math.floor((energy - 50 - carryParts * 50) / 100), 1);
         const moveParts = Math.ceil((workParts + carryParts) / 2);
