@@ -1,0 +1,129 @@
+const config = require("./config");
+
+module.exports = {
+    roleName: 'builder',
+    memory: {
+        default: true,
+    },
+    /** @param {Creep} creep **/
+    run: function(creep) {
+        if(creep.memory.building && creep.store[RESOURCE_ENERGY] === 0) {
+            creep.memory.building = false;
+            creep.say('🔄 harvest');
+        }
+        if(!creep.memory.building && creep.store.getFreeCapacity() === 0) {
+            creep.memory.building = true;
+            creep.say('🚧 build');
+        }
+
+        if(creep.memory.building) {
+            let targets = creep.room.find(FIND_CONSTRUCTION_SITES);
+            if(targets.length) {
+                // targets.sort((a,b) => b.progress - a.progress);
+                let res = creep.build(targets[0]);
+                if(res === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                }
+                return;
+            }
+
+            targets = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    // return (structure.hits < structure.hitsMax && structure.structureType !== STRUCTURE_WALL && structure.structureType !== STRUCTURE_RAMPART);
+                    return (structure.hits < structure.hitsMax);
+                }
+            });
+            if(targets.length > 0) {
+                targets.sort((a,b) => a.hits/a.hitsMax - b.hits/b.hitsMax);
+                if(creep.repair(targets[0]) === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                }
+                return;
+            }
+        }
+        else {
+            const container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (structure.structureType === STRUCTURE_CONTAINER && structure.store[RESOURCE_ENERGY] > 0);
+                }
+            });
+            if(container) {
+                if(creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(container, {visualizePathStyle: {stroke: '#ffaa00'}});
+                }
+            }
+            else {
+                const energy = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
+                    filter: (resource) => {
+                        return (resource.resourceType === RESOURCE_ENERGY);
+                    }
+                });
+                if(energy) {
+                    if(creep.pickup(energy) === ERR_NOT_IN_RANGE) {
+                        creep.moveTo(energy, {visualizePathStyle: {stroke: '#ffaa00'}});
+                    }
+                }
+                else {
+                    const source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
+                    if(source) {
+                        if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
+                            creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
+                        }
+                    }
+                }
+            }
+        }
+    },
+    getSuccessRate: function () {
+        const sitesToBuild = _.filter(Game.constructionSites, (s) => s.my && !s.progressTotal);
+        const damagedStructures = _.filter(Game.structures, (s) => s.hits < s.hitsMax);
+
+        const numBuilders = _.filter(Game.creeps, (creep) => creep.memory.role === 'builder').length;
+        const numSitesToBuild = sitesToBuild.length;
+        const numDamagedStructures = damagedStructures.length;
+
+        if (numBuilders === 0) {
+            return 0;
+        }
+        if (numSitesToBuild === 0 && numDamagedStructures === 0) {
+            return (1 * numBuilders);
+        }
+
+        const maxEffort = 1800 * numBuilders;
+        let effortSpent = 0;
+        if (numDamagedStructures > 0) {
+            effortSpent += Math.min(maxEffort, numDamagedStructures * REPAIR_POWER * REPAIR_COST);
+        }
+        if (numSitesToBuild > 0) {
+            effortSpent += Math.min(maxEffort - effortSpent, numSitesToBuild * BUILD_POWER * BUILD_COST);
+        }
+
+        return (effortSpent / maxEffort)*100;
+    },
+
+    /** @param {number} tier **/
+    getBody: function (tier) {
+        const energy = tier * 200;
+        let workParts = Math.floor((energy - 200) / 150); // определяем количество work частей
+        workParts = Math.min(workParts, Math.floor((energy - 200) / 100)); // ограничиваем по количеству carry частей
+        workParts = Math.max(workParts, 1); // минимальное количество work частей - 1
+        const carryParts = Math.max(Math.ceil((energy - 200 - workParts * 100) / 50), 1); // определяем количество carry частей с учетом минимального набора
+        const moveParts = Math.ceil((workParts + carryParts) * 0.5); // определяем количество move частей
+        const body = [];
+
+        // добавляем части тела в соответствующем порядке
+        for (let i = 0; i < workParts; i++) {
+            body.push(WORK);
+        }
+        for (let i = 0; i < carryParts; i++) {
+            body.push(CARRY);
+        }
+        for (let i = 0; i < moveParts; i++) {
+            body.push(MOVE);
+        }
+
+        return body;
+    }
+
+
+};
