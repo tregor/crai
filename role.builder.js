@@ -17,14 +17,19 @@ module.exports = {
         }
 
         if(creep.memory.building) {
-            let targets = creep.room.find(FIND_CONSTRUCTION_SITES);
-            if(targets.length) {
-                // targets.sort((a,b) => b.progress - a.progress);
-                let res = creep.build(targets[0]);
-                if(res === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
+            let targets = [];
+            for (let priority of config.constructionSitePriority) {
+                targets = creep.room.find(FIND_CONSTRUCTION_SITES, {
+                    filter: (site) => site.structureType === priority
+                });
+                if (targets.length > 0) {
+                    targets.sort((a, b) => b.progress - a.progress); // Sort by most progress first
+                    let res = creep.build(targets[0]);
+                    if (res === ERR_NOT_IN_RANGE) {
+                        creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                    }
+                    break;
                 }
-                return;
             }
 
             targets = creep.room.find(FIND_STRUCTURES, {
@@ -33,12 +38,12 @@ module.exports = {
                     return (structure.hits < structure.hitsMax);
                 }
             });
-            if(targets.length > 0) {
-                targets.sort((a,b) => a.hits/a.hitsMax - b.hits/b.hitsMax);
+            if (targets.length > 0) {
+                targets.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
                 if(creep.repair(targets[0]) === ERR_NOT_IN_RANGE) {
                     creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
                 }
-                return;
+
             }
         }
         else {
@@ -55,7 +60,7 @@ module.exports = {
             else {
                 const energy = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
                     filter: (resource) => {
-                        return (resource.resourceType === RESOURCE_ENERGY);
+                        return (resource.resourceType === RESOURCE_ENERGY && resource.amount > creep.store.getFreeCapacity(RESOURCE_ENERGY));
                     }
                 });
                 if(energy) {

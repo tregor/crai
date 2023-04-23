@@ -26,7 +26,7 @@ module.exports = {
                 filter: (hauler) => hauler.memory.role === 'hauler'
             });
 
-            if (haulers.length <= 2) { //If count haulers <2 then help haulers
+            if (haulers.length < 1) { //If count haulers <2 then help haulers
                 const targets = creep.room.find(FIND_STRUCTURES, {
                     filter: (structure) => {
                         return (structure.structureType === STRUCTURE_EXTENSION ||
@@ -47,36 +47,26 @@ module.exports = {
             const builders = creep.room.find(FIND_MY_CREEPS, {
                 filter: (builder) => builder.memory.role === 'builder'
             });
-            if (builders.length < 2) {
-                let constructions_urgent = creep.room.find(FIND_CONSTRUCTION_SITES, {
-                    filter: (construction) => {
-                        return construction.structureType === STRUCTURE_EXTENSION ||
-                            // construction.structureType === STRUCTURE_EXTENSION ||
-                            // construction.structureType === STRUCTURE_EXTENSION ||
-                            construction.structureType === STRUCTURE_SPAWN;
+            if (builders.length < 1) {
+                let constructions = [];
+                for (let priority of config.constructionSitePriority) {
+                    constructions = creep.room.find(FIND_CONSTRUCTION_SITES, {
+                        filter: (site) => site.structureType === priority
+                    });
+                    if (constructions.length > 0) {
+                        constructions.sort((a, b) => b.progress - a.progress); // Sort by most progress first
+                        let res = creep.build(constructions[0]);
+                        if (res === ERR_NOT_IN_RANGE) {
+                            creep.moveTo(constructions[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                        }
+                        break;
                     }
-                });
-                if (constructions_urgent.length) {
-                    // creep.say('BLD URG');
-                    let res = creep.build(constructions_urgent[0]);
-                    if (res === ERR_NOT_IN_RANGE) {
-                        creep.moveTo(constructions_urgent[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                    }
-                    return;
-                }
-                let constructions = creep.room.find(FIND_CONSTRUCTION_SITES);
-                if (constructions.length) {
-                    let res = creep.build(constructions[0]);
-                    if (res === ERR_NOT_IN_RANGE) {
-                        creep.moveTo(constructions[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                    }
-                    return;
                 }
             }
 
-            // if ((creep.room.controller.progressTotal - creep.room.controller.progress) > 0 && creep.room.controller.level < 3) {
-            if (creep.room.controller.level < 3) {
-                if (creep.transfer(creep.room.controller, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+            if ((creep.room.controller.progressTotal - creep.room.controller.progress) > 0 && creep.room.controller.level < 3) {
+                let res = creep.transfer(creep.room.controller, RESOURCE_ENERGY);
+                if (res === ERR_NOT_IN_RANGE) {
                     creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
                 }
                 return;
@@ -105,7 +95,7 @@ module.exports = {
                         filter: (miner) => miner.id !== creep.id
                     });
                     const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 4);
-                    return miners.length < 1 && enemies.length === 0 && source.energy > 0;
+                    return miners.length < 4 && enemies.length === 0 && source.energy > 0;
                 }
             });
             if (sources.length) {

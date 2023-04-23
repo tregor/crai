@@ -16,6 +16,7 @@ module.exports = {
         }
 
         if (creep.memory.delivering) {
+            // Find spawns, extensions or towers and deliver energy to them
             let targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return (structure.structureType === STRUCTURE_EXTENSION ||
@@ -27,21 +28,43 @@ module.exports = {
             if (targets.length) {
                 if (creep.transfer(targets[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
                     creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                }else {
+                } else {
                 }
 
                 return;
             }
 
-            let constructions = creep.room.find(FIND_CONSTRUCTION_SITES);
-            if(constructions.length) {
-                let res = creep.build(constructions[0]);
-                if(res === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(constructions[0], {visualizePathStyle: {stroke: '#ffffff'}});
+            // Find the nearest container and transfer energy to it
+            let containers = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (structure.structureType === STRUCTURE_CONTAINER) &&
+                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                }
+            });
+            if (containers.length > 0) {
+                let nearestContainer = creep.pos.findClosestByRange(containers);
+                if (creep.transfer(nearestContainer, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(nearestContainer, {visualizePathStyle: {stroke: '#ffffff'}});
                 }
                 return;
             }
 
+            let constructions = [];
+            for (let priority of config.constructionSitePriority) {
+                constructions = creep.room.find(FIND_CONSTRUCTION_SITES, {
+                    filter: (site) => site.structureType === priority
+                });
+                if (constructions.length > 0) {
+                    constructions.sort((a, b) => b.progress - a.progress); // Sort by most progress first
+                    let res = creep.build(constructions[0]);
+                    if (res === ERR_NOT_IN_RANGE) {
+                        creep.moveTo(constructions[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                    }
+                    break;
+                }
+            }
+
+            // Transfer to controller
             if (creep.room.controller.progressTotal > 0) {
                 let res = creep.transfer(creep.room.controller, RESOURCE_ENERGY);
                 if (res === ERR_NOT_IN_RANGE) {
@@ -50,13 +73,13 @@ module.exports = {
 
             }
         } else {
-            let sources = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 16, {
+            // Dropped resources
+            let nearestSource = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
                 filter: (resource) => {
                     return resource.resourceType === RESOURCE_ENERGY;
                 }
             });
-            if (sources.length > 0) {
-                let nearestSource = creep.pos.findClosestByRange(sources);
+            if (nearestSource) {
                 if (creep.pickup(nearestSource) === ERR_NOT_IN_RANGE) {
                     creep.moveTo(nearestSource, {visualizePathStyle: {stroke: '#ffaa00'}});
                 }
@@ -72,7 +95,8 @@ module.exports = {
             return 1;
         }
         return ((workers.length) / resources.length);
-    },
+    }
+    ,
     /** @param {number} tier **/
     getBody: function (tier) {
         const energy = tier * 200;
@@ -94,4 +118,4 @@ module.exports = {
         return body;
     }
 
-};
+}

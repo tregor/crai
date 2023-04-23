@@ -29,19 +29,24 @@ const spawnerController = {
                 continue;
             }
             if (room.energyAvailable < (200 * tier)) {
+                // console.log(`Not enough energyAvailable ${energyAvailable}/${tier*200}`)
                 continue; //Wait until tier I
             }
             // if ((room.energyAvailable / room.energyCapacityAvailable) > 0.9) {
             //     continue; //Wait until max charge
             // }
 
-            if (myCreeps.length < 1) {
-                spawnRole(config.defaultSpawn, creepRoles.worker, 1)
+
+            const workers = room.find(FIND_MY_CREEPS, {
+                filter: (worker) => worker.memory.role === 'worker'
+            });
+            if (workers.length < tier) {
+                spawnRole(config.defaultSpawn, creepRoles.worker, tier)
                 continue;
             }
 
 
-            console.log('Energy avaliable: ' + room.energyAvailable + ' to spawn T' + tier);
+            // console.log('Energy avaliable: ' + room.energyAvailable + ' to spawn T' + tier);
             for (const roleName in creepRoles) {
                 const role = creepRoles[roleName];
                 const existingCount = roleCounts[roleName] || 0;
@@ -74,7 +79,7 @@ const spawnerController = {
                     return;
                 }
             }
-            if (energyAvailable === room.energyAvailable) {
+            if (energyAvailable === room.energyCapacityAvailable) {
                 spawnRole(config.defaultSpawn, creepRoles.worker, tier)
             }
         }
@@ -107,10 +112,10 @@ function spawnRole(spawn, role, tier) {
     if (spawn.room.energyAvailable >= cost) {
         const result = spawn.spawnCreep(body, creepName, {memory: memory});
         if (result === OK) {
-            console.log('Spawning new worker:', creepName, 'in room', spawn.room.name, 'for cost', cost);
+            console.log('Spawning new worker:', creepName, ` of Tier ${tier} in room`, spawn.room.name, 'for cost', cost);
         }
     } else {
-        console.log(`The cost of a ${role.roleName} of Tier ${tier} is ${cost} energy units while ${spawn.room.energyAvailable} available.`);
+        // console.log(`The cost of a ${role.roleName} of Tier ${tier} is ${cost} energy units while ${spawn.room.energyAvailable} available.`);
     }
 }
 
