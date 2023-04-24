@@ -111,18 +111,18 @@ function calculateCreepCost(body) {
 
 
 function spawnRole(spawn, role, tier) {
-    // Спавним крипа
     if (spawn.spawning) {
         return ERR_BUSY;
     }
+
     const body = role.getBody(tier);
     const creepName = 'T' + tier + (role.roleName.charAt(0).toUpperCase() + role.roleName.slice(1)) + '_' + Game.time;
     const memory = {...role.memory, role: role.roleName, tier: tier};
     const cost = calculateCreepCost(body);
     const result = spawn.spawnCreep(body, creepName, {memory: memory});
-    // spawn.spawnCreep([WORK, CARRY, MOVE, CARRY, CARRY], 'tregor', {memory: {role: 'builder', tier: 0}})
+
     if (result === OK) {
-        console.log('Spawning new worker:', creepName, ` of Tier ${tier} in room`, spawn.room.name, 'for cost', cost);
+        console.log('Spawning new worker:', creepName, ` in room`, spawn.room.name, 'for cost', cost);
     } else {
         console.log(`The cost of a ${role.roleName} of Tier ${tier} is ${cost} energy units while ${spawn.room.energyAvailable} available.`);
     }

@@ -2,6 +2,13 @@ module.exports = {
     // Глобальные настройки
     defaultSpawn: Game.spawns['Spawn1'],
     energyPerTier: 200,
+    energyPerTiers: {
+        1: 200,
+        2: 550,
+        3: 850,
+        4: 1200,
+        5: 1800,
+    },
     constructionSitePriority: [
         STRUCTURE_TOWER,
         STRUCTURE_SPAWN,
