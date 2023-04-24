@@ -34,8 +34,8 @@ module.exports = {
 
             targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    // return (structure.hits < structure.hitsMax && structure.structureType !== STRUCTURE_WALL && structure.structureType !== STRUCTURE_RAMPART);
-                    return (structure.hits < structure.hitsMax);
+                    return (structure.hits < structure.hitsMax && structure.structureType !== STRUCTURE_WALL && structure.structureType !== STRUCTURE_RAMPART);
+                    // return (structure.hits < structure.hitsMax);
                 }
             });
             if (targets.length > 0) {
@@ -43,7 +43,6 @@ module.exports = {
                 if(creep.repair(targets[0]) === ERR_NOT_IN_RANGE) {
                     creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
                 }
-
             }
         }
         else {
@@ -70,8 +69,8 @@ module.exports = {
                 }
                 else {
                     const source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
-                    if(source) {
-                        if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
+                    if (source) {
+                        if (creep.harvest(source) === ERR_NOT_IN_RANGE) {
                             creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
                         }
                     }
@@ -79,36 +78,40 @@ module.exports = {
             }
         }
     },
-    getSuccessRate: function () {
-        const sitesToBuild = _.filter(Game.constructionSites, (s) => s.my && !s.progressTotal);
-        const damagedStructures = _.filter(Game.structures, (s) => s.hits < s.hitsMax);
-
-        const numBuilders = _.filter(Game.creeps, (creep) => creep.memory.role === 'builder').length;
-        const numSitesToBuild = sitesToBuild.length;
-        const numDamagedStructures = damagedStructures.length;
+    getSuccessRate: function (room) {
+        const numBuilders = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'builder'}}}).length;
+        const numSitesToBuild = room.find(FIND_CONSTRUCTION_SITES).length;
+        const numDamagedStructures = room.find(FIND_STRUCTURES, {
+            filter: (structure) => {
+                return structure.hits < structure.hitsMax;
+            }
+        }).length;
+        // const constructionSites = room.find(FIND_CONSTRUCTION_SITES);
+        // const sitesToBuild = _.filter(constructionSites, (s) => s.my && !s.progressTotal);
+        // const numSitesToBuild = sitesToBuild.length;
 
         if (numBuilders === 0) {
             return 0;
         }
-        if (numSitesToBuild === 0 && numDamagedStructures === 0) {
-            return (1 * numBuilders);
+        if ((numSitesToBuild === 0) && (numDamagedStructures === 0)) {
+            return numBuilders;
         }
 
-        const maxEffort = 1800 * numBuilders;
+        const maxEffort = 100 * numBuilders;
         let effortSpent = 0;
         if (numDamagedStructures > 0) {
             effortSpent += Math.min(maxEffort, numDamagedStructures * REPAIR_POWER * REPAIR_COST);
         }
         if (numSitesToBuild > 0) {
-            effortSpent += Math.min(maxEffort - effortSpent, numSitesToBuild * BUILD_POWER * BUILD_COST);
+            effortSpent += Math.min(maxEffort - effortSpent, numSitesToBuild * BUILD_POWER * 3000);
         }
 
-        return (effortSpent / maxEffort)*100;
+        return (Math.min(effortSpent, 1) / maxEffort);
     },
 
     /** @param {number} tier **/
     getBody: function (tier) {
-        const energy = tier * 200;
+        const energy = tier * config.energyPerTier;
         let workParts = Math.floor((energy - 200) / 150); // определяем количество work частей
         workParts = Math.min(workParts, Math.floor((energy - 200) / 100)); // ограничиваем по количеству carry частей
         workParts = Math.max(workParts, 1); // минимальное количество work частей - 1

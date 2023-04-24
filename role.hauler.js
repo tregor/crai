@@ -75,21 +75,20 @@ module.exports = {
             // Dropped resources
             let nearestSource = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
                 filter: (resource) => {
-                    return resource.resourceType === RESOURCE_ENERGY;
+                    return resource.resourceType === RESOURCE_ENERGY
+                    // && resource.amount >= creep.store.getFreeCapacity(RESOURCE_ENERGY)
                 }
             });
             if (nearestSource) {
                 if (creep.pickup(nearestSource) === ERR_NOT_IN_RANGE) {
                     creep.moveTo(nearestSource, {visualizePathStyle: {stroke: '#ffaa00'}});
                 }
-            } else {
-                creep.moveTo(config.defaultSpawn)
             }
         }
     },
-    getSuccessRate: function () {
+    getSuccessRate: function (room) {
         const workers = _.filter(Game.creeps, (creep) => creep.memory.role === 'hauler');
-        const resources = _.filter(Game.spawns.Spawn1.room.find(FIND_DROPPED_RESOURCES), (resource) => resource.resourceType === RESOURCE_ENERGY);
+        const resources = _.filter(room.find(FIND_DROPPED_RESOURCES), (resource) => resource.resourceType === RESOURCE_ENERGY);
         if (resources.length === 0) {
             return 1;
         }
@@ -98,7 +97,7 @@ module.exports = {
     ,
     /** @param {number} tier **/
     getBody: function (tier) {
-        const energy = tier * 200;
+        const energy = tier * config.energyPerTier;
         const carryParts = Math.max(Math.ceil((energy - 50) / 100), 1);
         const workParts = Math.max(Math.floor((energy - 50 - carryParts * 50) / 100), 1);
         const moveParts = Math.ceil((workParts + carryParts) / 2);

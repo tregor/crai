@@ -1,8 +1,8 @@
 const roles = {
-    worker: require('role.worker'),
     hauler: require('role.hauler'),
     miner: require('role.miner'),
     builder: require('role.builder'),
+    worker: require('role.worker'),
     // добавляем сюда другие роли
 };
 

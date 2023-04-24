@@ -37,34 +37,23 @@ module.exports = {
             }
         }
     },
-    getSuccessRate: function () {
+    getSuccessRate: function (room) {
         const workers = _.filter(Game.creeps, (creep) => creep.memory.role === 'miner');
-        const resources = Game.spawns.Spawn1.room.find(FIND_SOURCES_ACTIVE, {
-            // filter: (source) => {
-            //     const miners = source.pos.findInRange(FIND_MY_CREEPS, 3, {
-            //         filter: (miner) => miner.memory.role === 'miner'
-            //     });
-            //     const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
-            //     return miners.length < 1 && enemies.length === 0 && source.energy > 0;
-            // }
-        });
+        const resources = room.find(FIND_SOURCES_ACTIVE);
 
         return (workers.length / resources.length);
     },
     /** @param {number} tier **/
     getBody: function (tier) {
-        const energy = tier * 300;
-        const workParts = Math.floor((energy - 50) / 100); // определяем количество work частей
-        const moveParts = Math.ceil(workParts / 2); // определяем количество move частей
+        const energy = tier * config.energyPerTier;
+        const workParts = Math.floor(energy / 100); // увеличиваем количество work частей
         const body = [];
 
         // добавляем части тела в соответствующем порядке
         for (let i = 0; i < workParts; i++) {
             body.push(WORK);
         }
-        for (let i = 0; i < moveParts; i++) {
-            body.push(MOVE);
-        }
+        body.push(MOVE); // добавляем всего лишь одну MOVE часть
 
         return body;
     }
