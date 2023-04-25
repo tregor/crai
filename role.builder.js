@@ -28,14 +28,14 @@ module.exports = {
                     if (res === ERR_NOT_IN_RANGE) {
                         creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
                     }
-                    break;
+                    return;
                 }
             }
 
             targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return (structure.hits < structure.hitsMax && structure.structureType !== STRUCTURE_WALL && structure.structureType !== STRUCTURE_RAMPART);
-                    // return (structure.hits < structure.hitsMax);
+                    // return (structure.hits < structure.hitsMax && structure.structureType !== STRUCTURE_WALL && structure.structureType !== STRUCTURE_RAMPART);
+                    return (structure.hits < structure.hitsMax);
                 }
             });
             if (targets.length > 0) {
@@ -43,35 +43,46 @@ module.exports = {
                 if (creep.repair(targets[0]) === ERR_NOT_IN_RANGE) {
                     creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
                 }
+
             }
         } else {
-            const container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+            const resources_droped = creep.room.find(FIND_DROPPED_RESOURCES, {
+                filter: (resource) => {
+                    return resource.resourceType === RESOURCE_ENERGY && resource.amount >= creep.store.getFreeCapacity(RESOURCE_ENERGY);
+                }
+            });
+            const containers = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return (structure.structureType === STRUCTURE_CONTAINER && structure.store[RESOURCE_ENERGY] > 0);
                 }
             });
-            if (container) {
-                if (creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(container, {visualizePathStyle: {stroke: '#ffaa00'}});
+            const sources = creep.room.find(FIND_SOURCES_ACTIVE, {
+                filter: (source) => {
+                    const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
+                        filter: (miner) => miner.id !== creep.id
+                    });
+                    const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 4);
+                    return miners.length < 3 && enemies.length === 0 && source.energy > 0;
                 }
-            } else {
-                const energy = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
-                    filter: (resource) => {
-                        return (resource.resourceType === RESOURCE_ENERGY && (resource.amount > creep.store.getFreeCapacity(RESOURCE_ENERGY)));
-                    }
-                });
-                if (energy) {
-                    if (creep.pickup(energy) === ERR_NOT_IN_RANGE) {
-                        creep.moveTo(energy, {visualizePathStyle: {stroke: '#ffaa00'}});
-                    }
+            });
+            // Combine the lists of resources, containers, and sources
+            const allSources = resources_droped.concat(containers).concat(sources);
+            if (allSources.length) {
+                // Find the closest source
+                const nearest = creep.pos.findClosestByRange(allSources);
+                // Move towards the closest source and perform the appropriate action
+                if (!creep.pos.isNearTo(nearest)) {
+                    creep.moveTo(nearest, {visualizePathStyle: {stroke: '#ffaa00'}});
                 } else {
-                    const source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
-                    if (source) {
-                        if (creep.harvest(source) === ERR_NOT_IN_RANGE) {
-                            creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
-                        }
+                    if (nearest.amount > 0) {
+                        creep.pickup(nearest);
+                    } else if (nearest.structureType === STRUCTURE_CONTAINER) {
+                        creep.withdraw(nearest, RESOURCE_ENERGY);
+                    } else if (nearest.energy > 0) {
+                        creep.harvest(nearest);
                     }
                 }
+
             }
         }
     },
@@ -83,7 +94,7 @@ module.exports = {
                 return structure.hits < structure.hitsMax;
             }
         });
-        const energyAvailable = _.sum(builders, (c) => (c.getActiveBodyparts(WORK) * BUILD_POWER));
+        const energyAvailable = _.sum(builders, (c) => (c.getActiveBodyparts(WORK) * BUILD_POWER * 10));
         const energyNeededForConstructs = _.sum(constructionSites, (s) => CONSTRUCTION_COST[s.structureType]);
         const energyNeededForRepairs = _.sum(damagedStructures, (s) => ((s.hitsMax - s.hits) * REPAIR_COST));
         const energyNeeded = energyNeededForConstructs + energyNeededForRepairs;

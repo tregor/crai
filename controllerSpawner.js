@@ -40,7 +40,7 @@ const spawnerController = {
             const numCreeps = Object.keys(Game.creeps).length;
             createDebugVisual(room.name, spawn.pos.x, spawn.pos.y,
                 `T${tier} Spawner`,
-                `Energy: ${room.energyAvailable}/${room.energyCapacityAvailable}(${energyReqForTier(tier)})`,
+                `Energy: ${room.energyAvailable}/${energyReqForTier(tier)}(${room.energyCapacityAvailable}`,
                 `CPU Usage: ${cpuUsage.toFixed(2)}`,
                 `Num Creeps: ${numCreeps}`,
             );
@@ -57,7 +57,11 @@ const spawnerController = {
             }
             const primes = [2, 3, 5, 7, 11, 13, 17, 19];
             const minCreepsForTier = primes[tier - 1];
-            if (!roleCounts['worker'] || roleCounts['worker'] < minCreepsForTier) {
+            if (numCreeps === 0) {
+                spawnRole(config.defaultSpawn, creepRoles.worker, 1);
+                continue;
+            }
+            if (!roleCounts['worker'] || (roleCounts['worker'] < minCreepsForTier)) {
                 spawnRole(config.defaultSpawn, creepRoles.worker, tier);
                 continue;
             }
@@ -70,7 +74,6 @@ const spawnerController = {
 
                 console.log(roleName + " s: " + (successRate * 100) + "%" + ", a: " + existingCount + ", d: " + desiredCount);
                 if ((desiredCount - existingCount) > 0) {
-                    // spawnRole(spawn, role, tier);
                     if (!rolesToSpawnCount[roleName]) {
                         rolesToSpawnCount[roleName] = (desiredCount - existingCount);
                     } else {
