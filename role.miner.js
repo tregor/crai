@@ -14,26 +14,24 @@ module.exports = {
                         filter: (miner) => miner.id !== creep.id && miner.memory.role === 'miner'
                     });
                     const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
-                    return miners.length < 1 && enemies.length === 0 && source.energy > 0;
+                    return ((miners.length < 1) && (enemies.length === 0) && (source.energy > 0));
                 }
             });
-
             if (sources.length > 0) {
                 // Найти ближайший источник ресурсов
                 const closestSource = creep.pos.findClosestByRange(sources);
                 creep.memory.sourceId = closestSource.id;
             }
-        }
-
-        const source = Game.getObjectById(creep.memory.sourceId);
-        if (source) {
-            //Если крип рядом с источником энергии, начинаем добывать
-            if (creep.pos.isNearTo(source)) {
-                creep.harvest(source);
-            }
-            //Иначе двигаемся к источнику
-            else {
-                creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
+        } else {
+            const source = Game.getObjectById(creep.memory.sourceId);
+            if ((source) && (source.energy > 0)) {
+                if (creep.pos.isNearTo(source)) {
+                    creep.harvest(source);
+                } else {
+                    creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
+                }
+            } else {
+                creep.memory.sourceId = null;
             }
         }
     },

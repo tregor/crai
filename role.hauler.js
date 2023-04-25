@@ -8,11 +8,11 @@ module.exports = {
     run: function (creep) {
         if (creep.memory.delivering && creep.store[RESOURCE_ENERGY] === 0) {
             creep.memory.delivering = false;
-            creep.say('🔄 harvest');
+            // creep.say('🔄 harvest');
         }
         if (!creep.memory.delivering && creep.store.getFreeCapacity() === 0) {
             creep.memory.delivering = true;
-            creep.say('🚚 deliver');
+            // creep.say('🚚 deliver');
         }
 
         if (creep.memory.delivering) {

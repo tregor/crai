@@ -11,13 +11,13 @@ module.exports = {
         if (creep.memory.transporting && creep.store[RESOURCE_ENERGY] === 0) {
             creep.memory.transporting = false;
             creep.memory.action = 'loading';
-            creep.say('🔄 loading');
+            // creep.say('🔄 loading');
         }
         // Если крип переносит ресурс и полностью загружен, то отнесём его куда нужно
         if (!creep.memory.transporting && creep.store.getFreeCapacity() === 0) {
             creep.memory.transporting = true;
             creep.memory.action = 'transporting';
-            creep.say('🚚 deliver');
+            // creep.say('🚚 deliver');
         }
 
         // Если крип несет ресурс
@@ -74,18 +74,16 @@ module.exports = {
         }
         // Если крип не несет ресурс
         else {
-            let resources_droped = creep.room.find(FIND_DROPPED_RESOURCES, {
+            const resources_droped = creep.room.find(FIND_DROPPED_RESOURCES, {
                 filter: (resource) => {
                     return resource.resourceType === RESOURCE_ENERGY && resource.amount >= creep.store.getFreeCapacity(RESOURCE_ENERGY);
                 }
             });
-            if (resources_droped.length) {
-                let nearest = creep.pos.findClosestByRange(resources_droped)
-                if (creep.pickup(nearest) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(nearest, {visualizePathStyle: {stroke: '#ffaa00'}});
+            const containers = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (structure.structureType === STRUCTURE_CONTAINER && structure.store[RESOURCE_ENERGY] > 0);
                 }
-            }
-
+            });
             const sources = creep.room.find(FIND_SOURCES_ACTIVE, {
                 filter: (source) => {
                     const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
@@ -95,19 +93,28 @@ module.exports = {
                     return miners.length < 3 && enemies.length === 0 && source.energy > 0;
                 }
             });
-            if (sources.length) {
-                // Найти ближайший источник ресурсов
-                const closestSource = creep.pos.findClosestByRange(sources);
-                if (creep.harvest(closestSource) === ERR_NOT_IN_RANGE) {
-                    let res = creep.moveTo(closestSource, {visualizePathStyle: {stroke: '#ffaa00'}});
-                    if (res === ERR_NO_PATH || res === ERR_NOT_FOUND) {
-                        creep.moveTo(config.defaultSpawn);
+            // Combine the lists of resources, containers, and sources
+            const allSources = resources_droped.concat(containers).concat(sources);
+            if (allSources.length) {
+                // Find the closest source
+                const nearest = creep.pos.findClosestByRange(allSources);
+                // Move towards the closest source and perform the appropriate action
+                if (!creep.pos.isNearTo(nearest)) {
+                    creep.moveTo(nearest, {visualizePathStyle: {stroke: '#ffaa00'}});
+                } else {
+                    if (nearest.amount > 0) {
+                        creep.pickup(nearest);
+                    } else if (nearest.structureType === STRUCTURE_CONTAINER) {
+                        creep.withdraw(nearest, RESOURCE_ENERGY);
+                    } else if (nearest.energy > 0) {
+                        creep.harvest(nearest);
                     }
                 }
-            } else {
-                // Если ресурсов на карте нет, идем на спавн
-                creep.moveTo(config.defaultSpawn)
+                return;
             }
+
+            // Если ресурсов на карте нет, идем на спавн
+            creep.moveTo(config.defaultSpawn)
         }
     },
     getSuccessRate: function (room) {

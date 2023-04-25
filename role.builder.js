@@ -9,11 +9,11 @@ module.exports = {
     run: function (creep) {
         if (creep.memory.building && creep.store[RESOURCE_ENERGY] === 0) {
             creep.memory.building = false;
-            creep.say('🔄 harvest');
+            // creep.say('🔄 harvest');
         }
         if (!creep.memory.building && creep.store.getFreeCapacity() === 0) {
             creep.memory.building = true;
-            creep.say('🚧 build');
+            // creep.say('🚧 build');
         }
 
         if (creep.memory.building) {
@@ -76,18 +76,19 @@ module.exports = {
         }
     },
     getSuccessRate: function (room) {
-        const builders = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'builder'}}}).length;
+        const builders = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'builder'}}});
         const constructionSites = room.find(FIND_CONSTRUCTION_SITES);
         const damagedStructures = room.find(FIND_STRUCTURES, {
             filter: (structure) => {
                 return structure.hits < structure.hitsMax;
             }
-        }).length;
+        });
         const energyAvailable = _.sum(builders, (c) => (c.getActiveBodyparts(WORK) * BUILD_POWER));
         const energyNeededForConstructs = _.sum(constructionSites, (s) => CONSTRUCTION_COST[s.structureType]);
         const energyNeededForRepairs = _.sum(damagedStructures, (s) => ((s.hitsMax - s.hits) * REPAIR_COST));
         const energyNeeded = energyNeededForConstructs + energyNeededForRepairs;
         const energyRatio = (energyAvailable / energyNeeded) || 0;
+        console.log(builders.length, constructionSites.length, damagedStructures.length, energyAvailable, energyNeededForConstructs, energyRatio)
 
         if (builders.length === 0) {
             return 0;
@@ -96,7 +97,7 @@ module.exports = {
             return builders.length;
         }
 
-        return energyRatio;
+        return Math.max(energyRatio, 0.01);
     },
 
 

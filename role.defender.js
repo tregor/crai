@@ -3,7 +3,6 @@ const config = require("./config");
 module.exports = {
     roleName: 'defender',
     memory: {
-        default: true,
         targetPos: null, // точка финиша маршрута
     },
     run: function (creep) {
@@ -27,28 +26,17 @@ module.exports = {
             return;
         }
 
-        let targetPos = new RoomPosition(25, 25, creep.room.name)
-        if (!creep.memory.hasOwnProperty('targetPos')) {
-            while (creep.room.getTerrain().get(targetPos.x, targetPos.y, creep.room) !== 0) {
-                targetPos = new RoomPosition(Math.floor(Math.random() * 50), Math.floor(Math.random() * 50), creep.room.name);
-            }
-            creep.memory.targetPos = targetPos;
-        } else {
-            targetPos = creep.memory.targetPos;
+        // Нет врагов, сторожим входы
+        if (!creep.memory.exitPos) { // если позиция выхода не установлена, то устанавливаем
+            const exits = creep.room.find(FIND_EXIT);
+            const exitIndex = Math.floor(Math.random() * exits.length); // выбираем случайный индекс
+            // creep.memory.exitPos = exits[exitIndex];
+            creep.memory.exitPos = new RoomPosition(exits[exitIndex].x, exits[exitIndex].y, exits[exitIndex].roomName);
         }
 
-        // creep.say(creep.pos.getRangeTo(targetPos.x, targetPos.y))
-        if (creep.pos.getRangeTo(targetPos.x, targetPos.y) > 2) {
-            creep.moveTo(targetPos, {visualizePathStyle: {stroke: '#ffaaaa'}});
-        } else {
-            let newTargetPos = new RoomPosition(Math.floor(Math.random() * 50), Math.floor(Math.random() * 50), creep.room.name);
-            while (creep.room.getTerrain().get(newTargetPos.x, newTargetPos.y) !== 0) {
-                newTargetPos = new RoomPosition(Math.floor(Math.random() * 50), Math.floor(Math.random() * 50), creep.room.name);
-            }
-            creep.moveTo(newTargetPos, {visualizePathStyle: {stroke: '#ffaaaa'}});
-            creep.memory.targetPos = newTargetPos;
+        if (creep.pos.getRangeTo(creep.memory.exitPos) > 2) { // если не находимся на позиции выхода, то двигаемся к ней
+            creep.moveTo(creep.memory.exitPos, {visualizePathStyle: {stroke: '#ffaaaa'}});
         }
-
     },
     getSuccessRate: function (room) {
         const enemies = room.find(FIND_HOSTILE_CREEPS);
