@@ -1,3 +1,10 @@
+if (!Memory.seenRooms) {
+    Memory.seenRooms = {};
+}
+if (!Memory.seenMinerals) {
+    Memory.seenMinerals = {};
+}
+
 module.exports = {
     // Глобальные настройки
     defaultSpawn: Game.spawns['Spawn1'],

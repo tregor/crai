@@ -1,4 +1,5 @@
 const roles = {
+    scout: require('role.scout'),
     miner: require('role.miner'),
     hauler: require('role.hauler'),
     builder: require('role.builder'),

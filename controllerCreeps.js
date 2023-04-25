@@ -11,6 +11,12 @@ const controllerCreeps = {
                 role.run(creep);
             }
         }
+        for (const name in Memory.creeps) {
+            if (!(name in Game.creeps)) {
+                console.log(`Creep ${name} was dead.`)
+                delete Memory.creeps[name];
+            }
+        }
     }
 };
 
