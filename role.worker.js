@@ -22,10 +22,19 @@ module.exports = {
 
         // Если крип несет ресурс
         if (creep.memory.transporting) {
+            // Do not allow downgrade of controller
+            if (creep.room.controller.ticksToDowngrade < 10000) {
+                let res = creep.transfer(creep.room.controller, RESOURCE_ENERGY);
+                if (res === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
+                }
+                return;
+            }
+
+
             const haulers = creep.room.find(FIND_MY_CREEPS, {
                 filter: (hauler) => hauler.memory.role === 'hauler'
             });
-
             const haulerTargets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return (structure.structureType === STRUCTURE_EXTENSION ||

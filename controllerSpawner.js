@@ -41,6 +41,9 @@ const spawnerController = {
             if ((room.energyCapacityAvailable < energyReqForTier(tier)) && room.energyAvailable >= energyReqForTier(tier - 1)) {
                 tier = tier - 1;
             }
+            // const primes = [2, 3, 5, 7, 11, 13, 17, 19];
+            const primes = [1, 2, 3, 4, 5, 6, 7, 8];
+            const minCreepsForTier = config.creepsPerTier[tier - 1];
             createDebugVisual(room.name, spawn.pos.x, spawn.pos.y,
                 `T${tier} Spawner`,
                 `Energy: ${room.energyAvailable}/${energyReqForTier(tier)}(${room.energyCapacityAvailable}`,
@@ -51,8 +54,6 @@ const spawnerController = {
             if (spawn.spawning) {
                 continue;
             }
-            const primes = [2, 3, 5, 7, 11, 13, 17, 19];
-            const minCreepsForTier = primes[tier - 1];
             if (numCreeps === 0 && room.energyAvailable >= 300) {
                 spawnRole(config.defaultSpawn, creepRoles.worker, 1);
                 continue;
@@ -60,10 +61,10 @@ const spawnerController = {
             if ((room.energyAvailable < energyReqForTier(tier))) {
                 continue;
             }
-            if (!roleCounts['worker'] || (roleCounts['worker'] < minCreepsForTier)) {
-                spawnRole(config.defaultSpawn, creepRoles.worker, tier);
-                continue;
-            }
+            // if (!roleCounts['worker'] || (roleCounts['worker'] < minCreepsForTier)) {
+            //     spawnRole(config.defaultSpawn, creepRoles.worker, tier);
+            //     continue;
+            // }
             let rolesToSpawnCount = {};
             for (const roleName in creepRoles) {
                 const role = creepRoles[roleName];
@@ -105,9 +106,7 @@ const spawnerController = {
             console.log(JSON.stringify(rolesToSpawnCount));
             for (const roleToSpawn in rolesToSpawnCount) {
                 for (let i = 1; i < rolesToSpawnCount[roleToSpawn]; i++) {
-                    let energyBefore = spawn.room.energyAvailable;
                     spawnRole(spawn, creepRoles[roleToSpawn], tier);
-                    let energyAfter = spawn.room.energyAvailable;
                     spawning = true
                     break;
                 }
@@ -189,7 +188,7 @@ function spawnRole(spawn, role, tier) {
     if (result === OK) {
         console.log('Spawning new worker:', creepName, ` in room`, spawn.room.name, 'for cost', cost);
     } else {
-        console.log(`The cost of a ${role.roleName} of Tier ${tier} is ${cost} energy units while ${spawn.room.energyAvailable} available.`);
+        console.log(`The cost of a ${role.roleName} of Tier ${tier} is ${cost} energy units while ${spawn.room.energyAvailable} available.` + result);
     }
     return result;
 }

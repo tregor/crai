@@ -16,6 +16,13 @@ module.exports = {
         4: 1200,
         5: 1800,
     },
+    creepsPerTier: [
+        1,
+        3,
+        4,
+        6,
+        8,
+    ],
     constructionSitePriority: [
         STRUCTURE_LINK,
         STRUCTURE_EXTRACTOR,

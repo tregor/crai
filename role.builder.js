@@ -24,6 +24,7 @@ module.exports = {
                 }
             });
             if (targets.length > 0) {
+                targets.sort((a, b) => a.ticksToDecay - b.ticksToDecay);
                 targets.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
                 if (creep.repair(targets[0]) === ERR_NOT_IN_RANGE) {
                     creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});

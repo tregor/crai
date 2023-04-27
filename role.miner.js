@@ -21,6 +21,34 @@ module.exports = {
                 // Найти ближайший источник ресурсов
                 const closestSource = creep.pos.findClosestByRange(sources);
                 creep.memory.sourceId = closestSource.id;
+                return;
+            }
+
+            const adjacentRooms = Game.map.describeExits(creep.room.name);
+            for (const roomDirection in adjacentRooms) {
+                const roomName = adjacentRooms[roomDirection];
+                const room = Game.rooms[roomName];
+                if (!room) {
+                    // Room not explored
+                    continue;
+                }
+                const sources = room.find(FIND_SOURCES_ACTIVE, {
+                    filter: (source) => {
+                        const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
+                            filter: (miner) => miner.id !== creep.id && miner.memory.role === 'miner'
+                        });
+                        const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
+                        return ((miners.length < 2) && (enemies.length === 0) && (source.energy > 0));
+                    }
+                });
+                if (sources.length > 0) {
+                    // Найти ближайший источник ресурсов
+                    const closestSource = creep.pos.findClosestByRange(sources);
+                    if (closestSource) {
+                        creep.memory.sourceId = closestSource.id;
+                        return;
+                    }
+                }
             }
         } else {
             const source = Game.getObjectById(creep.memory.sourceId);
