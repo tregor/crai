@@ -18,6 +18,21 @@ module.exports = {
 
         if (creep.memory.building) {
             let targets = [];
+            targets = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    // return (structure.hits < structure.hitsMax && structure.structureType !== STRUCTURE_WALL && structure.structureType !== STRUCTURE_RAMPART);
+                    return (structure.hits < structure.hitsMax);
+                }
+            });
+            if (targets.length > 0) {
+                targets.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
+                if (creep.repair(targets[0]) === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                }
+                return;
+            }
+
+            targets = [];
             for (let priority of config.constructionSitePriority) {
                 targets = creep.room.find(FIND_CONSTRUCTION_SITES, {
                     filter: (site) => site.structureType === priority
@@ -30,20 +45,6 @@ module.exports = {
                     }
                     return;
                 }
-            }
-
-            targets = creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    // return (structure.hits < structure.hitsMax && structure.structureType !== STRUCTURE_WALL && structure.structureType !== STRUCTURE_RAMPART);
-                    return (structure.hits < structure.hitsMax);
-                }
-            });
-            if (targets.length > 0) {
-                targets.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
-                if (creep.repair(targets[0]) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                }
-
             }
         } else {
             const resources_droped = creep.room.find(FIND_DROPPED_RESOURCES, {
