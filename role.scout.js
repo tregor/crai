@@ -9,6 +9,7 @@ module.exports = {
         // Перейти в ближайшую неисследованную комнату или случайную, если все исследованы
         if (!creep.memory.targetRoom || creep.room.name === creep.memory.targetRoom) {
             Memory.seenRooms[creep.room.name] = true;
+            console.log(creep.room.name, JSON.stringify(Game.map.describeExits(creep.room.name)))
             const unexploredRooms = _.filter(Game.map.describeExits(creep.room.name), (r) => !Memory.seenRooms[r.name]);
             if (unexploredRooms.length > 0) {
                 creep.memory.targetRoom = _.sample(unexploredRooms);
