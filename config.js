@@ -12,22 +12,11 @@ module.exports = {
     energyPerTiers: {
         1: 200,
         2: 550,
-        3: 850,
+        3: 800,
         4: 1200,
         5: 1800,
     },
     constructionSitePriority: [
-        STRUCTURE_TOWER,
-        STRUCTURE_SPAWN,
-        STRUCTURE_EXTENSION,
-
-        STRUCTURE_STORAGE,
-        STRUCTURE_CONTAINER,
-
-        STRUCTURE_RAMPART,
-        STRUCTURE_ROAD,
-        STRUCTURE_WALL,
-
         STRUCTURE_LINK,
         STRUCTURE_EXTRACTOR,
         STRUCTURE_OBSERVER,
@@ -36,5 +25,16 @@ module.exports = {
         STRUCTURE_TERMINAL,
         STRUCTURE_NUKER,
         STRUCTURE_FACTORY,
+
+        STRUCTURE_SPAWN,
+        STRUCTURE_EXTENSION,
+
+        STRUCTURE_ROAD,
+        STRUCTURE_WALL,
+        STRUCTURE_TOWER,
+        STRUCTURE_RAMPART,
+
+        STRUCTURE_STORAGE,
+        STRUCTURE_CONTAINER,
     ],
 };

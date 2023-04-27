@@ -10,11 +10,11 @@ module.exports = {
         if (!creep.memory.sourceId) {
             const sources = creep.room.find(FIND_SOURCES_ACTIVE, {
                 filter: (source) => {
-                    const miners = source.pos.findInRange(FIND_MY_CREEPS, 3, {
+                    const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
                         filter: (miner) => miner.id !== creep.id && miner.memory.role === 'miner'
                     });
                     const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
-                    return ((miners.length < 1) && (enemies.length === 0) && (source.energy > 0));
+                    return ((miners.length < 2) && (enemies.length === 0) && (source.energy > 0));
                 }
             });
             if (sources.length > 0) {
@@ -43,15 +43,15 @@ module.exports = {
     },
     /** @param {number} tier **/
     getBody: function (tier) {
-        const energy = tier * config.energyPerTier;
-        const workParts = Math.floor(energy / 100); // увеличиваем количество work частей
         const body = [];
+        body.push(MOVE); // добавляем всего лишь одну MOVE часть
+        const energy = config.energyPerTiers[tier] - BODYPART_COST[MOVE];
+        const workParts = Math.floor(energy / BODYPART_COST[WORK]); // увеличиваем количество work частей
 
         // добавляем части тела в соответствующем порядке
         for (let i = 0; i < workParts; i++) {
             body.push(WORK);
         }
-        body.push(MOVE); // добавляем всего лишь одну MOVE часть
 
         return body;
     }

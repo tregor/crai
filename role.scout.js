@@ -9,7 +9,7 @@ module.exports = {
         // Перейти в ближайшую неисследованную комнату или случайную, если все исследованы
         if (!creep.memory.targetRoom || creep.room.name === creep.memory.targetRoom) {
             Memory.seenRooms[creep.room.name] = true;
-            const unexploredRooms = _.filter(Game.map.describeExits(creep.room.name), (r) => Game.map.getRoomTerrain(r) !== "wall" && !Memory.seenRooms[r.name]);
+            const unexploredRooms = _.filter(Game.map.describeExits(creep.room.name), (r) => !Memory.seenRooms[r.name]);
             if (unexploredRooms.length > 0) {
                 creep.memory.targetRoom = _.sample(unexploredRooms);
             } else {
@@ -18,7 +18,8 @@ module.exports = {
         }
         // Если контроллер в комнате не принадлежит никому, то захватить его
         const controller = creep.room.controller;
-        if (controller && !controller.owner && !controller.reservation && creep.store.getFreeCapacity() > 0) {
+        if (controller && !controller.owner && !controller.reservation && creep.getActiveBodyparts(CLAIM) > 0) {
+            console.log('Found free controller')
             if (creep.pos.inRangeTo(controller, 1)) {
                 creep.claimController(controller);
             } else {
@@ -47,14 +48,18 @@ module.exports = {
     getSuccessRate: function () {
         return 1; // 0.05 means 5% of effecienty
     },
-    getBody: function (tier = 1) {
-        const body = [];
-        for (let i = 0; i < tier; i++) {
-            body.push(WORK);
-            body.push(MOVE);
-            body.push(MOVE);
+    getBody: function (tier) {
+        let body = [];
+        let energy = config.energyPerTiers[tier];
+        // console.log(tier, energy)
+        energy -= BODYPART_COST[CLAIM];
+        // console.log(JSON.stringify(BODYPART_COST[CLAIM]))
+        const bodyMoveCount = Math.floor(energy / BODYPART_COST[MOVE]); // увеличиваем количество work частей
+        // добавляем части тела в соответствующем порядке
+        for (let i = 0; i < bodyMoveCount; i++) {
             body.push(MOVE);
         }
+
         return body;
     },
 };

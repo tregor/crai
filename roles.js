@@ -5,6 +5,7 @@ const roles = {
     builder: require('role.builder'),
 
     defender: require('role.defender'),
+    scout: require('role.scout'),
 
     worker: require('role.worker'),
     // добавляем сюда другие роли

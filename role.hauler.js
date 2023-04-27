@@ -16,23 +16,6 @@ module.exports = {
         }
 
         if (creep.memory.delivering) {
-            // Find spawns, extensions or towers and deliver energy to them
-            let targets = creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (structure.structureType === STRUCTURE_EXTENSION ||
-                            structure.structureType === STRUCTURE_SPAWN ||
-                            structure.structureType === STRUCTURE_TOWER) &&
-                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-                }
-            });
-            if (targets.length) {
-                if (creep.transfer(targets[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                }
-
-                return;
-            }
-
             // Find the nearest container and transfer energy to it
             let containers = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
@@ -48,19 +31,21 @@ module.exports = {
                 return;
             }
 
-            let constructions = [];
-            for (let priority of config.constructionSitePriority) {
-                constructions = creep.room.find(FIND_CONSTRUCTION_SITES, {
-                    filter: (site) => site.structureType === priority
-                });
-                if (constructions.length > 0) {
-                    constructions.sort((a, b) => b.progress - a.progress); // Sort by most progress first
-                    let res = creep.build(constructions[0]);
-                    if (res === ERR_NOT_IN_RANGE) {
-                        creep.moveTo(constructions[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                    }
-                    break;
+            // Find spawns, extensions or towers and deliver energy to them
+            let targets = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (structure.structureType === STRUCTURE_EXTENSION ||
+                            structure.structureType === STRUCTURE_SPAWN ||
+                            structure.structureType === STRUCTURE_TOWER) &&
+                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                 }
+            });
+            if (targets.length) {
+                if (creep.transfer(targets[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                }
+
+                return;
             }
 
             // Transfer to controller
@@ -93,27 +78,24 @@ module.exports = {
             return 1;
         }
         return ((workers.length) / resources.length);
-    }
-    ,
+    },
     /** @param {number} tier **/
     getBody: function (tier) {
-        const energy = tier * config.energyPerTier;
-        const carryParts = Math.max(Math.ceil((energy - 50) / 100), 1);
-        const workParts = Math.max(Math.floor((energy - 50 - carryParts * 50) / 100), 1);
-        const moveParts = Math.ceil((workParts + carryParts) / 2);
         const body = [];
+        let energy = config.energyPerTiers[tier];
 
-        for (let i = 0; i < carryParts; i++) {
-            body.push(CARRY);
-        }
-        for (let i = 0; i < workParts; i++) {
-            body.push(WORK);
-        }
+        const carryParts = Math.floor((energy / 2) / BODYPART_COST[CARRY]); // максимальное количество CARRY частей
+        const moveParts = Math.ceil((carryParts * 2) / 3); // количество MOVE частей, которые нужны, чтобы сохранить скорость передвижения на уровне 1 клетки в тик
+        const maxWeight = carryParts * CARRY_CAPACITY;
+
         for (let i = 0; i < moveParts; i++) {
             body.push(MOVE);
         }
 
-        return body;
-    }
+        for (let i = 0; i < carryParts; i++) {
+            body.push(CARRY);
+        }
 
+        return body;
+    },
 }

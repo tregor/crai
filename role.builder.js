@@ -94,12 +94,12 @@ module.exports = {
                 return structure.hits < structure.hitsMax;
             }
         });
-        const energyAvailable = _.sum(builders, (c) => (c.getActiveBodyparts(WORK) * BUILD_POWER * 10));
+        const energyAvailable = _.sum(builders, (c) => (c.getActiveBodyparts(WORK) * BUILD_POWER)) * 100;
         const energyNeededForConstructs = _.sum(constructionSites, (s) => CONSTRUCTION_COST[s.structureType]);
         const energyNeededForRepairs = _.sum(damagedStructures, (s) => ((s.hitsMax - s.hits) * REPAIR_COST));
         const energyNeeded = energyNeededForConstructs + energyNeededForRepairs;
         const energyRatio = (energyAvailable / energyNeeded) || 0;
-        console.log(builders.length, constructionSites.length, damagedStructures.length, energyAvailable, energyNeededForConstructs, energyRatio)
+        const objectsRatio = (builders.length * 16) / (constructionSites.length + damagedStructures.length + 1);
 
         if (builders.length === 0) {
             return 0;
@@ -108,13 +108,14 @@ module.exports = {
             return builders.length;
         }
 
-        return Math.max(energyRatio, 0.01);
+        return Math.max(objectsRatio, 0.1);
+        return Math.max(energyRatio, 0.1);
     },
 
 
     /** @param {number} tier **/
     getBody: function (tier) {
-        const energy = tier * config.energyPerTier;
+        const energy = config.energyPerTiers[tier];
         let workParts = Math.floor((energy - 200) / 150); // определяем количество work частей
         workParts = Math.min(workParts, Math.floor((energy - 200) / 100)); // ограничиваем по количеству carry частей
         workParts = Math.max(workParts, 1); // минимальное количество work частей - 1

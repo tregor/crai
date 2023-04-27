@@ -37,7 +37,10 @@ const spawnerController = {
 
             // Display debug information using RoomVisuals
             const cpuUsage = Game.cpu.getUsed() * 100;
-            const numCreeps = Object.keys(Game.creeps).length;
+            const numCreeps = room.find(FIND_MY_CREEPS).length;
+            if ((room.energyCapacityAvailable < energyReqForTier(tier)) && room.energyAvailable >= energyReqForTier(tier - 1)) {
+                tier = tier - 1;
+            }
             createDebugVisual(room.name, spawn.pos.x, spawn.pos.y,
                 `T${tier} Spawner`,
                 `Energy: ${room.energyAvailable}/${energyReqForTier(tier)}(${room.energyCapacityAvailable}`,
@@ -48,17 +51,13 @@ const spawnerController = {
             if (spawn.spawning) {
                 continue;
             }
-            if ((room.energyAvailable < energyReqForTier(tier))) {
-                if ((room.energyCapacityAvailable < energyReqForTier(tier)) && room.energyAvailable >= energyReqForTier(tier - 1)) {
-                    tier = tier - 1;
-                } else {
-                    continue;
-                }
-            }
             const primes = [2, 3, 5, 7, 11, 13, 17, 19];
             const minCreepsForTier = primes[tier - 1];
-            if (numCreeps === 0) {
+            if (numCreeps === 0 && room.energyAvailable >= 300) {
                 spawnRole(config.defaultSpawn, creepRoles.worker, 1);
+                continue;
+            }
+            if ((room.energyAvailable < energyReqForTier(tier))) {
                 continue;
             }
             if (!roleCounts['worker'] || (roleCounts['worker'] < minCreepsForTier)) {
@@ -72,7 +71,7 @@ const spawnerController = {
                 const successRate = Math.max(role.getSuccessRate(spawn.room), 0.01).toFixed(2);
                 const desiredCount = Math.max(calculateRequiredCreeps(existingCount, successRate), minCreepsForTier);
 
-                console.log(roleName + " s: " + (successRate * 100) + "%" + ", a: " + existingCount + ", d: " + desiredCount);
+                // console.log(roleName + " s: " + (successRate * 100) + "%" + ", a: " + existingCount + ", d: " + desiredCount);
                 if ((desiredCount - existingCount) > 0) {
                     if (!rolesToSpawnCount[roleName]) {
                         rolesToSpawnCount[roleName] = (desiredCount - existingCount);

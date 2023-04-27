@@ -25,6 +25,7 @@ module.exports = {
             const haulers = creep.room.find(FIND_MY_CREEPS, {
                 filter: (hauler) => hauler.memory.role === 'hauler'
             });
+
             const haulerTargets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return (structure.structureType === STRUCTURE_EXTENSION ||
@@ -149,18 +150,23 @@ module.exports = {
 
     },
     getBody: function (tier) {
-        this.memory.tier = tier;
-        const energy = tier * config.energyPerTier;
-        const carryParts = tier;
-        const workParts = tier;
-        const moveParts = tier;
-        const body = [];
+        let body = [];
+        let energy = config.energyPerTiers[tier];
+        let workParts = 1;
+        let carryParts = 1;
+        let moveParts = 1;
 
-        for (let i = 0; i < carryParts; i++) {
-            body.push(CARRY);
-        }
+        // Вычисляем максимальное количество частей для каждого типа
+        workParts = Math.min(Math.floor((energy - moveParts * BODYPART_COST[MOVE]) / BODYPART_COST[WORK]), 5);
+        carryParts = Math.min(Math.floor((energy - moveParts * BODYPART_COST[MOVE] - workParts * BODYPART_COST[WORK]) / BODYPART_COST[CARRY]), 5);
+        moveParts = Math.min(Math.floor((energy - workParts * BODYPART_COST[WORK] - carryParts * BODYPART_COST[CARRY]) / BODYPART_COST[MOVE]), 10);
+
+        // Добавляем части тела в соответствующем порядке
         for (let i = 0; i < workParts; i++) {
             body.push(WORK);
+        }
+        for (let i = 0; i < carryParts; i++) {
+            body.push(CARRY);
         }
         for (let i = 0; i < moveParts; i++) {
             body.push(MOVE);
@@ -168,4 +174,5 @@ module.exports = {
 
         return body;
     }
+
 };
