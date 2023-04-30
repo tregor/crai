@@ -51,16 +51,19 @@ module.exports = {
         // Если есть враждебный игрок и крип может получить урон, то убежать
         const hostileCreeps = creep.room.find(FIND_HOSTILE_CREEPS);
         if (hostileCreeps.length) {
-            creep.say('RUN!');
+            // console.log(JSON.stringify(hostileCreeps))
+            // creep.say('RUN!');
             creep.moveTo(config.defaultSpawn);
             return;
         }
 
         // Перейти в ближайшую неисследованную комнату или случайную, если все исследованы
         Memory.seenRooms[creep.room.name] = true;
+        if (!Game.rooms[creep.memory.targetRoom]) {
+            creep.memory.targetRoom = null;
+        }
         if ((!creep.memory.targetRoom) || (creep.room.name === creep.memory.targetRoom)) {
             if (!Game.map.describeExits(creep.room.name)) {
-                creep.say('No exits!');
                 return;
             }
 
@@ -68,12 +71,23 @@ module.exports = {
             if (unexploredRooms.length > 0) {
                 creep.memory.targetRoom = _.sample(unexploredRooms);
             } else {
-                creep.memory.targetRoom = config.defaultSpawn.name;
+                const rand_x = Math.floor(Math.random() * 48);
+                const rand_y = Math.floor(Math.random() * 48);
+                const route = Game.map.findRoute(creep.room, `W${rand_x}N${rand_y}`);
+                if (route.length > 0) {
+                    console.log('Now heading to room ' + route[0].room);
+                    creep.memory.targetRoom = route[0].room;
+                    const exit = creep.pos.findClosestByRange(route[0].exit);
+                    creep.moveTo(exit);
+                }
+                console.log(`random room is ${creep.memory.targetRoom}`)
+                // creep.memory.targetRoom = _.sample(Game.map.describeExits(creep.room.name));
             }
         }
-        // Перейти в целевую комнату
-        creep.say('GO')
-        creep.moveTo(new RoomPosition(25, 25, creep.memory.targetRoom), {visualizePathStyle: {stroke: '#ffffff'}});
+        if (creep.memory.targetRoom) {
+            // Перейти в целевую комнату
+            creep.moveTo(new RoomPosition(25, 25, creep.memory.targetRoom), {visualizePathStyle: {stroke: '#ffffff'}});
+        }
     },
     getSuccessRate: function () {
         return 1; // 0.05 means 5% of effecienty

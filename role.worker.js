@@ -22,6 +22,7 @@ module.exports = {
 
         // Если крип несет ресурс
         if (creep.memory.transporting) {
+
             // Do not allow downgrade of controller
             if (creep.room.controller.ticksToDowngrade < 10000) {
                 let res = creep.transfer(creep.room.controller, RESOURCE_ENERGY);
@@ -31,7 +32,7 @@ module.exports = {
                 return;
             }
 
-
+            //If haulers less than targets help haulers
             const haulers = creep.room.find(FIND_MY_CREEPS, {
                 filter: (hauler) => hauler.memory.role === 'hauler'
             });

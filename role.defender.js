@@ -8,20 +8,10 @@ module.exports = {
     run: function (creep) {
         // Определяем противника и ближайшие цели для атаки
         const target = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-        const repairTarget = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-            filter: (structure) => {
-                return (structure.my && structure.hits < structure.hitsMax);
-            }
-        });
         // Атака
         if (target) {
             if (creep.attack(target) === ERR_NOT_IN_RANGE) {
                 creep.moveTo(target, {visualizePathStyle: {stroke: '#ff0000'}});
-            }
-            return;
-        } else if (repairTarget) {
-            if (creep.repair(repairTarget) === ERR_NOT_IN_RANGE) {
-                creep.moveTo(repairTarget, {visualizePathStyle: {stroke: '#00ff00'}});
             }
             return;
         }
@@ -31,10 +21,11 @@ module.exports = {
             const exits = creep.room.find(FIND_EXIT);
             const exitIndex = Math.floor(Math.random() * exits.length); // выбираем случайный индекс
             // creep.memory.exitPos = exits[exitIndex];
+            console.log(`Defending exit ${exits[exitIndex]}`)
             creep.memory.exitPos = new RoomPosition(exits[exitIndex].x, exits[exitIndex].y, exits[exitIndex].roomName);
         }
 
-        if (creep.pos.getRangeTo(creep.memory.exitPos) > 2) { // если не находимся на позиции выхода, то двигаемся к ней
+        if (creep.memory.exitPos && creep.pos.getRangeTo(creep.memory.exitPos) > 2) { // если не находимся на позиции выхода, то двигаемся к ней
             creep.moveTo(creep.memory.exitPos, {visualizePathStyle: {stroke: '#ffaaaa'}});
         }
     },

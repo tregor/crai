@@ -36,12 +36,12 @@ module.exports = {
         STRUCTURE_SPAWN,
         STRUCTURE_EXTENSION,
 
+        STRUCTURE_STORAGE,
+        STRUCTURE_CONTAINER,
+
         STRUCTURE_ROAD,
         STRUCTURE_WALL,
         STRUCTURE_TOWER,
         STRUCTURE_RAMPART,
-
-        STRUCTURE_STORAGE,
-        STRUCTURE_CONTAINER,
     ],
 };
