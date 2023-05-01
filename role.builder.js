@@ -110,12 +110,12 @@ module.exports = {
                 return structure.hits < structure.hitsMax;
             }
         });
-        const energyAvailable = _.sum(builders, (c) => (c.getActiveBodyparts(WORK) * BUILD_POWER)) * 100;
+        const energyAvailable = _.sum(builders, (c) => (c.getActiveBodyparts(WORK) * BUILD_POWER)) * 2560;
         const energyNeededForConstructs = _.sum(constructionSites, (s) => CONSTRUCTION_COST[s.structureType]);
         const energyNeededForRepairs = _.sum(damagedStructures, (s) => ((s.hitsMax - s.hits) * REPAIR_COST));
         const energyNeeded = energyNeededForConstructs + energyNeededForRepairs;
         const energyRatio = (energyAvailable / energyNeeded) || 0;
-        const objectsRatio = (builders.length * 16) / (constructionSites.length + damagedStructures.length + 1);
+        const objectsRatio = ((builders.length * 4) / (constructionSites.length + 1) + (builders.length * 16) / (damagedStructures.length + 1)) / 2;
 
         if (builders.length === 0) {
             return 0;
@@ -124,8 +124,8 @@ module.exports = {
             return builders.length;
         }
 
+        // return Math.max(energyRatio, 0.1);
         return Math.max(objectsRatio, 0.1);
-        return Math.max(energyRatio, 0.1);
     },
 
 

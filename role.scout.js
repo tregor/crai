@@ -1,4 +1,5 @@
 const config = require("./config");
+const minClaimSources = 1;
 module.exports = {
     roleName: 'scout',
     memory: {
@@ -14,7 +15,7 @@ module.exports = {
             && (controller.owner === undefined)
             && (controller.reservation === undefined)
             && (creep.getActiveBodyparts(CLAIM) > 0)
-            && (controller.room.find(FIND_SOURCES).length > 2)
+            && (controller.room.find(FIND_SOURCES).length > minClaimSources)
         ) {
             if (!creep.memory.claimRoom) {
                 creep.memory.claimRoom = creep.room.name;
@@ -23,16 +24,20 @@ module.exports = {
                 const minerals = controller.room.find(FIND_MINERALS).length;
                 let textNofitication = `Scout found new room ${controller.room.name} (distance: ${distance}, sources: ${sources}, minerals: ${minerals})`;
                 textNofitication += `\nTo claim this controller provide: 'Memory.creeps.${creep.name}.claimAllowed = true'`;
-                Game.notify(textNofitication);
+                // Game.notify(textNofitication);
                 console.log(textNofitication);
             }
 
             if (creep.pos.inRangeTo(controller, 1)) {
                 if (creep.memory.claimAllowed) {
-                    creep.claimController(controller);
-                    creep.memory.claimAllowed = false;
-                    creep.memory.claimRoom = null;
+                    let res = creep.claimController(controller);
+                    console.log(res)
+                    if (res === OK) {
+                        creep.memory.claimAllowed = false;
+                        creep.memory.claimRoom = null;
+                    }
                 }
+                return;
             } else {
                 creep.moveTo(controller, {visualizePathStyle: {stroke: '#ffffff'}});
                 return;

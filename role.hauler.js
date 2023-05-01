@@ -16,6 +16,16 @@ module.exports = {
         }
 
         if (creep.memory.delivering) {
+
+            // Do not allow downgrade of controller
+            if (creep.room.controller.ticksToDowngrade < 10000) {
+                let res = creep.transfer(creep.room.controller, RESOURCE_ENERGY);
+                if (res === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
+                }
+                return;
+            }
+
             // Find the nearest container and transfer energy to it
             let containers = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
@@ -29,32 +39,30 @@ module.exports = {
                     creep.moveTo(nearestContainer, {visualizePathStyle: {stroke: '#ffffff'}});
                 }
                 return;
-            }
+            } else {
+                // Find spawns, extensions or towers and deliver energy to them
+                let targets = creep.room.find(FIND_STRUCTURES, {
+                    filter: (structure) => {
+                        return (structure.structureType === STRUCTURE_EXTENSION ||
+                                structure.structureType === STRUCTURE_SPAWN ||
+                                structure.structureType === STRUCTURE_TOWER) &&
+                            structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                    }
+                });
+                if (targets.length) {
+                    if (creep.transfer(targets[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                        creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                    }
 
-            // Find spawns, extensions or towers and deliver energy to them
-            let targets = creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (structure.structureType === STRUCTURE_EXTENSION ||
-                            structure.structureType === STRUCTURE_SPAWN ||
-                            structure.structureType === STRUCTURE_TOWER) &&
-                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                    return;
                 }
-            });
-            if (targets.length) {
-                if (creep.transfer(targets[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                }
-
-                return;
             }
 
             // Transfer to controller
-            if (creep.room.controller.progressTotal > 0) {
-                let res = creep.transfer(creep.room.controller, RESOURCE_ENERGY);
-                if (res === ERR_NOT_IN_RANGE) {
+            if (creep.room.controller.level < 8) {
+                if (creep.transfer(creep.room.controller, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
                     creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
                 }
-
             }
         } else {
             // Dropped resources
@@ -72,12 +80,12 @@ module.exports = {
         }
     },
     getSuccessRate: function (room) {
-        const workers = _.filter(Game.creeps, (creep) => creep.memory.role === 'hauler');
+        const haulers = _.filter(Game.creeps, (creep) => creep.memory.role === 'hauler');
         const resources = _.filter(room.find(FIND_DROPPED_RESOURCES), (resource) => resource.resourceType === RESOURCE_ENERGY);
         if (resources.length === 0) {
             return 1;
         }
-        return ((workers.length) / resources.length);
+        return ((haulers.length / 2) / resources.length) * (1 - (room.controller.level / 8));
     },
     /** @param {number} tier **/
     getBody: function (tier) {

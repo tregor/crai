@@ -25,11 +25,9 @@ module.exports = {
 
             // Do not allow downgrade of controller
             if (creep.room.controller.ticksToDowngrade < 10000) {
-                let res = creep.transfer(creep.room.controller, RESOURCE_ENERGY);
-                if (res === ERR_NOT_IN_RANGE) {
+                if (creep.transfer(creep.room.controller, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
                     creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
                 }
-                return;
             }
 
             //If haulers less than targets help haulers
@@ -55,7 +53,7 @@ module.exports = {
             const builders = creep.room.find(FIND_MY_CREEPS, {
                 filter: (builder) => builder.memory.role === 'builder'
             });
-            if (builders.length < creep.room.find(FIND_CONSTRUCTION_SITES).length) {
+            if (builders.length * 4 < creep.room.find(FIND_CONSTRUCTION_SITES).length) {
                 let constructions = [];
                 for (let priority of config.constructionSitePriority) {
                     constructions = creep.room.find(FIND_CONSTRUCTION_SITES, {
@@ -72,12 +70,11 @@ module.exports = {
                 }
             }
 
-            if ((creep.room.controller.progressTotal - creep.room.controller.progress) > 0) {
-                let res = creep.transfer(creep.room.controller, RESOURCE_ENERGY);
-                if (res === ERR_NOT_IN_RANGE) {
+            // Transfer to controller
+            if (creep.room.controller.level < 8) {
+                if (creep.transfer(creep.room.controller, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
                     creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
                 }
-                return;
             }
 
             // Если ресурсов на карте нет
