@@ -13,7 +13,7 @@ const controllerCreeps = {
         }
         for (const name in Memory.creeps) {
             if (!(name in Game.creeps)) {
-                console.log(`Creep ${name} was dead`)
+                console.log(`Creep ${name} dead`)
                 delete Memory.creeps[name];
                 // const roomName = Memory.creeps[name]._move.room;
                 // const room = Game.rooms[roomName];

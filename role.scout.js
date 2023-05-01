@@ -49,6 +49,7 @@ module.exports = {
         for (const mineral in resources) {
             if (!Memory.seenMinerals[resources[mineral].mineralType]) {
                 Memory.seenMinerals[resources[mineral].mineralType] = true;
+                // Memory.seenMinerals[resources[mineral].mineralType] TODO save position of every mineral found
                 console.log(`Scout found new mineral: ${resources[0].mineralType}`); //TODO: improve text "...in room X with amount Y and so on"
             }
         }
