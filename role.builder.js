@@ -20,7 +20,11 @@ module.exports = {
             let targets = [];
             targets = creep.pos.findInRange(FIND_STRUCTURES, 16, {
                 filter: (structure) => {
-                    return (structure.hits < structure.hitsMax && structure.structureType !== STRUCTURE_WALL && structure.structureType !== STRUCTURE_RAMPART);
+                    return (
+                        structure.hits < structure.hitsMax
+                        && structure.structureType !== STRUCTURE_WALL
+                        // && structure.structureType !== STRUCTURE_RAMPART
+                    );
                 }
             });
             if (targets.length > 0) {

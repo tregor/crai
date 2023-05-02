@@ -16,16 +16,6 @@ module.exports = {
         }
 
         if (creep.memory.delivering) {
-
-            // Do not allow downgrade of controller
-            if (creep.room.controller.ticksToDowngrade < 10000) {
-                let res = creep.transfer(creep.room.controller, RESOURCE_ENERGY);
-                if (res === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
-                }
-                return;
-            }
-
             // Find the nearest container and transfer energy to it
             let containers = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
@@ -33,37 +23,32 @@ module.exports = {
                         structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                 }
             });
-            if (containers.length > 0) {
-                let nearestContainer = creep.pos.findClosestByRange(containers);
-                if (creep.transfer(nearestContainer, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(nearestContainer, {visualizePathStyle: {stroke: '#ffffff'}});
-                }
-                return;
-            } else {
-                // Find spawns, extensions or towers and deliver energy to them
-                let targets = creep.room.find(FIND_STRUCTURES, {
-                    filter: (structure) => {
-                        return (structure.structureType === STRUCTURE_EXTENSION ||
-                                structure.structureType === STRUCTURE_SPAWN ||
-                                structure.structureType === STRUCTURE_TOWER) &&
-                            structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-                    }
-                });
-                if (targets.length) {
-                    if (creep.transfer(targets[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                        creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                    }
+            // if (containers.length > 0) {
+            //     let nearestContainer = creep.pos.findClosestByRange(containers);
+            //     if (creep.transfer(nearestContainer, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+            //         creep.moveTo(nearestContainer, {visualizePathStyle: {stroke: '#ffffff'}});
+            //     }
+            //     return;
+            // }
 
-                    return;
+            // Find spawns, extensions or towers and deliver energy to them
+            let targets = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (structure.structureType === STRUCTURE_EXTENSION ||
+                            structure.structureType === STRUCTURE_SPAWN ||
+                            structure.structureType === STRUCTURE_TOWER) &&
+                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                 }
+            });
+            if (targets.length) {
+                if (creep.transfer(targets[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                }
+
+
             }
 
-            // Transfer to controller
-            if (creep.room.controller.level < 8) {
-                if (creep.transfer(creep.room.controller, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
-                }
-            }
+
         } else {
             // Dropped resources
             let nearestSource = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
@@ -82,10 +67,14 @@ module.exports = {
     getSuccessRate: function (room) {
         const haulers = _.filter(Game.creeps, (creep) => creep.memory.role === 'hauler');
         const resources = _.filter(room.find(FIND_DROPPED_RESOURCES), (resource) => resource.resourceType === RESOURCE_ENERGY);
+        const energyDropped = _.sum(resources, (r) => (r.amount));
+
         if (resources.length === 0) {
             return 1;
         }
-        return ((haulers.length / 2) / resources.length) * (1 - (room.controller.level / 8));
+
+        return ((haulers.length * (HARVEST_POWER)) / energyDropped) * 24;
+        // return ((haulers.length / 2) / resources.length) * (1 - (room.controller.level / 8));
     },
     /** @param {number} tier **/
     getBody: function (tier) {

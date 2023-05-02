@@ -81,12 +81,12 @@ module.exports = {
                 const rand_y = Math.floor(Math.random() * 48);
                 const route = Game.map.findRoute(creep.room, `W${rand_x}N${rand_y}`);
                 if (route.length > 0) {
-                    console.log('Now heading to room ' + route[0].room);
+                    console.log(creep.name + ' is heading to room ' + route[0].room + ' now');
                     creep.memory.targetRoom = route[0].room;
                     const exit = creep.pos.findClosestByRange(route[0].exit);
                     creep.moveTo(exit);
                 }
-                console.log(`random room is ${creep.memory.targetRoom}`)
+                // console.log(`random room is ${creep.memory.targetRoom}`)
                 // creep.memory.targetRoom = _.sample(Game.map.describeExits(creep.room.name));
             }
         }

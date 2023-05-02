@@ -22,12 +22,14 @@ module.exports = {
 
         // Если крип несет ресурс
         if (creep.memory.transporting) {
-
             // Do not allow downgrade of controller
             if (creep.room.controller.ticksToDowngrade < 10000) {
-                if (creep.transfer(creep.room.controller, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                if (creep.pos.inRangeTo(creep.room.controller, 3)) {
+                    creep.transfer(creep.room.controller, RESOURCE_ENERGY)
+                } else {
                     creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
                 }
+                return;
             }
 
             //If haulers less than targets help haulers
@@ -82,7 +84,7 @@ module.exports = {
         }
         // Если крип не несет ресурс
         else {
-            const resources_droped = creep.room.find(FIND_DROPPED_RESOURCES, {
+            const resources_droped = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 8, {
                 filter: (resource) => {
                     return resource.resourceType === RESOURCE_ENERGY && resource.amount >= creep.store.getFreeCapacity(RESOURCE_ENERGY);
                 }
@@ -98,7 +100,7 @@ module.exports = {
                         filter: (miner) => miner.id !== creep.id
                     });
                     const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 4);
-                    return miners.length < 3 && enemies.length === 0 && source.energy > 0;
+                    return miners.length < (config.minersPerSource + 1) && enemies.length === 0 && source.energy > 0;
                 }
             });
             // Combine the lists of resources, containers, and sources
