@@ -23,8 +23,8 @@ module.exports = {
         // Если крип несет ресурс
         if (creep.memory.transporting) {
             // Do not allow downgrade of controller
-            if (creep.room.controller.ticksToDowngrade < 10000) {
-                if (creep.pos.inRangeTo(creep.room.controller, 3)) {
+            if (creep.room.controller.ticksToDowngrade < 9999) {
+                if (creep.pos.inRangeTo(creep.room.controller, 4)) {
                     creep.transfer(creep.room.controller, RESOURCE_ENERGY)
                 } else {
                     creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
@@ -84,16 +84,6 @@ module.exports = {
         }
         // Если крип не несет ресурс
         else {
-            const resources_droped = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 8, {
-                filter: (resource) => {
-                    return resource.resourceType === RESOURCE_ENERGY && resource.amount >= creep.store.getFreeCapacity(RESOURCE_ENERGY);
-                }
-            });
-            const containers = creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (structure.structureType === STRUCTURE_CONTAINER && structure.store[RESOURCE_ENERGY] > 0);
-                }
-            });
             const sources = creep.room.find(FIND_SOURCES_ACTIVE, {
                 filter: (source) => {
                     const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
@@ -103,25 +93,65 @@ module.exports = {
                     return miners.length < (config.minersPerSource + 1) && enemies.length === 0 && source.energy > 0;
                 }
             });
-            // Combine the lists of resources, containers, and sources
-            const allSources = resources_droped.concat(containers).concat(sources);
-            if (allSources.length) {
-                // Find the closest source
-                const nearest = creep.pos.findClosestByRange(allSources);
-                // Move towards the closest source and perform the appropriate action
+            const containers = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (structure.structureType === STRUCTURE_CONTAINER && structure.store[RESOURCE_ENERGY] > 0);
+                }
+            });
+            const resources_droped = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 8, {
+                filter: (resource) => {
+                    return resource.resourceType === RESOURCE_ENERGY && resource.amount >= creep.store.getFreeCapacity(RESOURCE_ENERGY);
+                }
+            });
+
+            if (containers.length) {
+                let nearest = creep.pos.findClosestByRange(containers);
                 if (!creep.pos.isNearTo(nearest)) {
-                    creep.moveTo(nearest, {visualizePathStyle: {stroke: '#ffaa00'}});
+                    creep.moveTo(nearest);
                 } else {
-                    if (nearest.amount > 0) {
-                        creep.pickup(nearest);
-                    } else if (nearest.structureType === STRUCTURE_CONTAINER) {
-                        creep.withdraw(nearest, RESOURCE_ENERGY);
-                    } else if (nearest.energy > 0) {
-                        creep.harvest(nearest);
-                    }
+                    creep.withdraw(nearest, RESOURCE_ENERGY);
                 }
                 return;
             }
+            if (sources.length) {
+                let nearest = creep.pos.findClosestByRange(sources);
+                if (!creep.pos.isNearTo(nearest)) {
+                    creep.moveTo(nearest);
+                } else {
+                    creep.harvest(nearest);
+                }
+                return;
+            }
+            if (resources_droped.length) {
+                let nearest = creep.pos.findClosestByRange(resources_droped);
+                if (!creep.pos.isNearTo(nearest)) {
+                    creep.moveTo(nearest);
+                } else {
+                    creep.pickup(nearest);
+                }
+                return;
+            }
+
+
+            // // Combine the lists of resources, containers, and sources
+            // const allSources = resources_droped.concat(containers).concat(sources);
+            // if (allSources.length) {
+            //     // Find the closest source
+            //     const nearest = creep.pos.findClosestByRange(allSources);
+            //     // Move towards the closest source and perform the appropriate action
+            //     if (!creep.pos.isNearTo(nearest)) {
+            //         creep.moveTo(nearest, {visualizePathStyle: {stroke: '#ffaa00'}});
+            //     } else {
+            //         if (nearest.amount > 0) {
+            //             creep.pickup(nearest);
+            //         } else if (nearest.structureType === STRUCTURE_CONTAINER) {
+            //             creep.withdraw(nearest, RESOURCE_ENERGY);
+            //         } else if (nearest.energy > 0) {
+            //             creep.harvest(nearest);
+            //         }
+            //     }
+            //     return;
+            // }
 
             // Если ресурсов на карте нет, идем на спавн
             creep.moveTo(config.defaultSpawn)
