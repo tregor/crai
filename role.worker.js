@@ -87,14 +87,14 @@ module.exports = {
                 creep.moveToAndPerform(nearest, 'withdraw', RESOURCE_ENERGY);
                 return;
             }
-            if (sources.length) {
-                let nearest = creep.pos.findClosestByRange(sources);
-                creep.moveToAndPerform(nearest, 'harvest');
-                return;
-            }
             if (resources_droped.length) {
                 let nearest = creep.pos.findClosestByRange(resources_droped);
                 creep.moveToAndPerform(nearest, 'pickup');
+                return;
+            }
+            if (sources.length) {
+                let nearest = creep.pos.findClosestByRange(sources);
+                creep.moveToAndPerform(nearest, 'harvest');
                 return;
             }
 

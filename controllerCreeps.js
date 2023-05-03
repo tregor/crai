@@ -40,6 +40,9 @@ const controllerCreeps = {
 };
 
 Creep.prototype.getFullname = function () {
+    if (!this.memory.tier || !this.memory.role) {
+        return this.name;
+    }
     let role = creepRoles[this.memory.role];
     let labelRole = (role.roleName.charAt(0).toUpperCase() + role.roleName.slice(1));
     return `T${this.memory.tier}${labelRole}`;
@@ -48,8 +51,14 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
     let res = OK;
     const moveOpts = {
         noPathFinding: (Game.cpu.getUsed() >= 20),
-        reusePath: 128,
-        visualizePathStyle: {stroke: '#00ffff'},
+        reusePath: 32,
+        visualizePathStyle: {
+            fill: undefined,
+            opacity: 0.6,
+            stroke: '#64ff64',
+            strokeWidth: 0.04,
+            lineStyle: 'dotted',
+        },
 
         ignoreCreeps: true,
         ignoreDestructibleStructures: false,
@@ -66,6 +75,7 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
         swampCost: 25,
     };
 
+    // this.say(action)
     if (typeof action === 'function') {
         res = action.call(this, target, ...args);
     } else {
