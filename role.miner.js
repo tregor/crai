@@ -14,8 +14,9 @@ module.exports = {
                     const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
                         filter: (miner) => miner.id !== creep.id && miner.memory.role === this.roleName
                     });
+                    const minersA = _.filter(Game.creeps, (creep) => creep.memory.sourceId === source.id)
                     const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
-                    return ((miners.length < config.minersPerSource) && (enemies.length === 0) && (source.energy > 0));
+                    return ((minersA.length < config.minersPerSource) && (enemies.length === 0) && (source.energy > 0));
                 }
             });
             if (sources.length > 0) {
@@ -41,21 +42,31 @@ module.exports = {
                         const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
                             filter: (miner) => miner.id !== creep.id && miner.memory.role === this.roleName
                         });
+                        const minersA = _.filter(Game.creeps, (creep) => creep.memory.sourceId === source.id)
                         const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
-                        return ((miners.length < config.minersPerSource) && (enemies.length === 0) && (source.energy > 0));
+                        return ((minersA.length < config.minersPerSource) && (enemies.length === 0) && (source.energy > 0));
                     }
                 });
                 if (sources.length > 0) {
                     creep.memory.sourceId = _.sample(sources).id;
                     return;
+                } else {
+                    creep.memory.sourceId = null;
                 }
             }
         } else {
+            const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
+                filter: (miner) => miner.id !== creep.id && miner.memory.role === this.roleName
+            });
+            if (miners.length > config.minersPerSource) {
+                creep.memory.sourceId = null;
+                return;
+            }
             if (source.energy > 0) {
                 creep.moveToAndPerform(source, 'harvest');
                 return;
             } else {
-                if (source.ticksToRegeneration > 60) {//TODO replace 60 with calculated ETA to new mines
+                if (source.ticksToRegeneration > 300) {//TODO replace 60 with calculated ETA to new mines
                     creep.memory.sourceId = null;
                 }
             }

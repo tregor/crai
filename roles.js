@@ -1,6 +1,6 @@
 const roles = {
-    hauler: require('role.hauler'),
     miner: require('role.miner'),
+    hauler: require('role.hauler'),
     builder: require('role.builder'),
 
     defender: require('role.defender'),

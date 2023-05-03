@@ -48,8 +48,8 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
     let res = OK;
     const moveOpts = {
         noPathFinding: (Game.cpu.getUsed() >= 20),
-        reusePath: 64,
-        visualizePathStyle: {stroke: '#ffffff'},
+        reusePath: 128,
+        visualizePathStyle: {stroke: '#00ffff'},
 
         ignoreCreeps: true,
         ignoreDestructibleStructures: false,
@@ -72,7 +72,7 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
         res = this[action](target, ...args);
     }
 
-    if (res === ERR_NOT_IN_RANGE) {
+    if (res === ERR_NOT_IN_RANGE || !this.pos.isNearTo(target)) {
         res = this.moveTo(target, moveOpts);
         if (res === ERR_NOT_FOUND) {
             moveOpts.noPathFinding = false;

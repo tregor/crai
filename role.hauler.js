@@ -45,18 +45,35 @@ module.exports = {
 
         } else {
             // Dropped resources
-            let nearestSource = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
+            let roomDropped = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
                 filter: (resource) => {
                     return resource.resourceType === RESOURCE_ENERGY
                     // && resource.amount >= creep.store.getFreeCapacity(RESOURCE_ENERGY)
                 }
             });
-            if (nearestSource) {
+            if (roomDropped) {
+                let nearestSource = creep.pos.findClosestByRange(roomDropped);
                 creep.moveToAndPerform(nearestSource, 'pickup');
                 return;
             } else {
                 if (creep.store[RESOURCE_ENERGY] > 0) {
                     creep.memory.delivering = true;
+                } else {
+                    let allDropped = [];
+                    for (let room in Game.rooms) {
+                        let roomDropped = room.find(FIND_DROPPED_RESOURCES, {
+                            filter: (resource) => {
+                                return resource.resourceType === RESOURCE_ENERGY
+                            }
+                        });
+                        allDropped = [...allDropped, ...roomDropped];
+                    }
+                    if (roomDropped) {
+                        let nearestSource = creep.pos.findClosestByRange(roomDropped);
+                        console.log(`Hauler found dropped resource in the room ${nearestSource.room.name}`);
+                        creep.moveToAndPerform(nearestSource, 'pickup');
+                        return;
+                    }
                 }
             }
         }

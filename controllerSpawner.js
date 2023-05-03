@@ -46,8 +46,8 @@ const spawnerController = {
             // const minCreepsForTier = config.creepsPerTier[tier - 1];
             const minCreepsForTier = 1;
             createDebugVisual(room.name, spawn.pos.x, spawn.pos.y,
-                `T${tier} (${room.controller.progress}/${room.controller.progressTotal})`,
-                `Energy: ${room.energyAvailable}/${energyReqForTier(tier)}(${room.energyCapacityAvailable}`,
+                `T${tier} (${Math.round(room.controller.progress / room.controller.progressTotal * 100)}%)`,
+                `Energy: ${room.energyAvailable}/${energyReqForTier(tier)} (${room.energyCapacityAvailable})`,
                 `CPU Usage: ${cpuUsage.toFixed(2)}`,
                 `Num Creeps: ${myCreeps.length}`,
             );
@@ -62,10 +62,7 @@ const spawnerController = {
             if ((room.energyAvailable < energyReqForTier(tier))) {
                 continue;
             }
-            // if (!roleCounts['worker'] || (roleCounts['worker'] < minCreepsForTier)) {
-            //     spawnRole(config.defaultSpawn, creepRoles.worker, tier);
-            //     continue;
-            // }
+
             let rolesToSpawnCount = {};
             for (const roleName in creepRoles) {
                 const role = creepRoles[roleName];
@@ -73,7 +70,6 @@ const spawnerController = {
                 const successRate = Math.max(role.getSuccessRate(spawn.room), 0.01).toFixed(2);
                 const desiredCount = Math.max(calculateRequiredCreeps(existingCount, successRate), minCreepsForTier);
 
-                // console.log(roleName + " s: " + (successRate * 100) + "%" + ", a: " + existingCount + ", d: " + desiredCount);
                 if ((desiredCount - existingCount) > 0) {
                     if (!rolesToSpawnCount[roleName]) {
                         rolesToSpawnCount[roleName] = (desiredCount - existingCount);
@@ -87,26 +83,11 @@ const spawnerController = {
                     } else {
                         rolesToSpawnCount[roleName] += (desiredCount - existingCount);
                     }
-                    if (myCreeps < 16) { // Minimal creeps to keep alive
-
-                    }
-                    // let target = null;
-                    // const targets = _.filter(Game.creeps, (creep) => creep.memory.role === roleName);
-                    // if (targets.length) {
-                    //     target = targets[0];
-                    //     for (let i = 1; i < targets.length; i++) {
-                    //         if (targets[i].ticksToLive < target.ticksToLive) {
-                    //             target = targets[i];
-                    //         }
-                    //     }
-                    //     target.say('💀 suicide');
-                    //     target.suicide();
-                    // }
                 }
             }
             console.log(JSON.stringify(rolesToSpawnCount));
             for (const roleToSpawn in rolesToSpawnCount) {
-                for (let i = 1; i < rolesToSpawnCount[roleToSpawn]; i++) {
+                for (let i = 0; i < rolesToSpawnCount[roleToSpawn]; i++) {
                     spawnRole(spawn, creepRoles[roleToSpawn], tier);
                     spawning = true
                     break;
