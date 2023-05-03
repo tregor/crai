@@ -9,6 +9,15 @@ module.exports = {
     },
     /** @param {Creep} creep **/
     run: function (creep) {
+        // Если есть враждебный игрок и крип может получить урон, то убежать
+        const hostileCreeps = creep.room.find(FIND_HOSTILE_CREEPS);
+        if (hostileCreeps.length) {
+            // console.log(JSON.stringify(hostileCreeps))
+            // creep.say('RUN!');
+            creep.moveTo(config.defaultSpawn);
+            return;
+        }
+
         // Если контроллер в комнате не принадлежит никому, то захватить его
         const controller = creep.room.controller;
         if (controller
@@ -52,15 +61,6 @@ module.exports = {
                 // Memory.seenMinerals[resources[mineral].mineralType] TODO save position of every mineral found
                 console.log(`Scout found new mineral: ${resources[0].mineralType}`); //TODO: improve text "...in room X with amount Y and so on"
             }
-        }
-
-        // Если есть враждебный игрок и крип может получить урон, то убежать
-        const hostileCreeps = creep.room.find(FIND_HOSTILE_CREEPS);
-        if (hostileCreeps.length) {
-            // console.log(JSON.stringify(hostileCreeps))
-            // creep.say('RUN!');
-            creep.moveTo(config.defaultSpawn);
-            return;
         }
 
         // Перейти в ближайшую неисследованную комнату или случайную, если все исследованы

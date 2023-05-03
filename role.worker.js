@@ -1,89 +1,67 @@
 const config = require("./config");
+const roleHauler = require("./role.hauler");
+const roleBuilder = require("./role.builder");
+
 module.exports = {
     roleName: 'worker',
     memory: {
         transporting: true,
-        action: null,
     },
     /** @param {Creep} creep **/
     run: function (creep) {
-        // Если крип не переносит ресурс, то попробуем поднять его
         if (creep.memory.transporting && creep.store[RESOURCE_ENERGY] === 0) {
             creep.memory.transporting = false;
-            creep.memory.action = 'loading';
-            // creep.say('🔄 loading');
         }
-        // Если крип переносит ресурс и полностью загружен, то отнесём его куда нужно
         if (!creep.memory.transporting && creep.store.getFreeCapacity() === 0) {
             creep.memory.transporting = true;
-            creep.memory.action = 'transporting';
-            // creep.say('🚚 deliver');
         }
 
-        // Если крип несет ресурс
         if (creep.memory.transporting) {
             // Do not allow downgrade of controller
             if (creep.room.controller.ticksToDowngrade < 9999) {
-                if (creep.pos.inRangeTo(creep.room.controller, 4)) {
-                    creep.transfer(creep.room.controller, RESOURCE_ENERGY)
-                } else {
-                    creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
-                }
+                creep.moveToAndPerform(creep.room.controller, 'transfer', RESOURCE_ENERGY);
                 return;
             }
 
-            //If haulers less than targets help haulers
-            const haulers = creep.room.find(FIND_MY_CREEPS, {
-                filter: (hauler) => hauler.memory.role === 'hauler'
-            });
-            const haulerTargets = creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (structure.structureType === STRUCTURE_EXTENSION ||
-                            structure.structureType === STRUCTURE_SPAWN ||
-                            structure.structureType === STRUCTURE_TOWER) &&
-                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-                }
-            });
-            if (haulers.length < haulerTargets.length) { //If haulers less than targets help haulers
-                let nearest = creep.pos.findClosestByRange(haulerTargets);
-                if (creep.transfer(nearest, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(nearest, {visualizePathStyle: {stroke: '#ffffff'}});
-                }
+            // Help haulers
+            if (roleHauler.getSuccessRate(creep.room) < 0.1) {
+                creep.say("Hauler");
+                const nearest = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                    filter: (structure) => {
+                        return (structure.structureType === STRUCTURE_EXTENSION ||
+                                structure.structureType === STRUCTURE_SPAWN ||
+                                structure.structureType === STRUCTURE_TOWER) &&
+                            structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                    }
+                });
+                creep.moveToAndPerform(nearest, 'transfer', RESOURCE_ENERGY);
                 return;
             }
 
-            const builders = creep.room.find(FIND_MY_CREEPS, {
-                filter: (builder) => builder.memory.role === 'builder'
-            });
-            if (builders.length * 4 < creep.room.find(FIND_CONSTRUCTION_SITES).length) {
-                let constructions = [];
+            // Help builders
+            if (roleBuilder.getSuccessRate(creep.room) < 0.1) {
+                creep.say("Builder")
                 for (let priority of config.constructionSitePriority) {
-                    constructions = creep.room.find(FIND_CONSTRUCTION_SITES, {
+                    let constructions = creep.room.find(FIND_CONSTRUCTION_SITES, {
                         filter: (site) => site.structureType === priority
                     });
-                    if (constructions.length > 0) {
-                        constructions.sort((a, b) => b.progress - a.progress); // Sort by most progress first
-                        let res = creep.build(constructions[0]);
-                        if (res === ERR_NOT_IN_RANGE) {
-                            creep.moveTo(constructions[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                        }
+                    if (constructions.length) {
+                        constructions.sort((a, b) => b.progress - a.progress);
+                        creep.moveToAndPerform(constructions[0], 'build');
                         return;
                     }
                 }
             }
 
-            // Transfer to controller
+            // Charge controller untill max LVL
             if (creep.room.controller.level < 8) {
-                if (creep.transfer(creep.room.controller, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
-                }
+                creep.moveToAndPerform(creep.room.controller, 'transfer', RESOURCE_ENERGY);
+                return;
             }
-
-            // Если ресурсов на карте нет
+            // Если ресурсов на карте нет и контроллер прокачан на максимум
             creep.moveTo(config.defaultSpawn);
-        }
-        // Если крип не несет ресурс
-        else {
+        } else {
+            // Если крип не несет ресурс
             const sources = creep.room.find(FIND_SOURCES_ACTIVE, {
                 filter: (source) => {
                     const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
@@ -106,52 +84,19 @@ module.exports = {
 
             if (containers.length) {
                 let nearest = creep.pos.findClosestByRange(containers);
-                if (!creep.pos.isNearTo(nearest)) {
-                    creep.moveTo(nearest);
-                } else {
-                    creep.withdraw(nearest, RESOURCE_ENERGY);
-                }
+                creep.moveToAndPerform(nearest, 'withdraw', RESOURCE_ENERGY);
                 return;
             }
             if (sources.length) {
                 let nearest = creep.pos.findClosestByRange(sources);
-                if (!creep.pos.isNearTo(nearest)) {
-                    creep.moveTo(nearest);
-                } else {
-                    creep.harvest(nearest);
-                }
+                creep.moveToAndPerform(nearest, 'harvest');
                 return;
             }
             if (resources_droped.length) {
                 let nearest = creep.pos.findClosestByRange(resources_droped);
-                if (!creep.pos.isNearTo(nearest)) {
-                    creep.moveTo(nearest);
-                } else {
-                    creep.pickup(nearest);
-                }
+                creep.moveToAndPerform(nearest, 'pickup');
                 return;
             }
-
-
-            // // Combine the lists of resources, containers, and sources
-            // const allSources = resources_droped.concat(containers).concat(sources);
-            // if (allSources.length) {
-            //     // Find the closest source
-            //     const nearest = creep.pos.findClosestByRange(allSources);
-            //     // Move towards the closest source and perform the appropriate action
-            //     if (!creep.pos.isNearTo(nearest)) {
-            //         creep.moveTo(nearest, {visualizePathStyle: {stroke: '#ffaa00'}});
-            //     } else {
-            //         if (nearest.amount > 0) {
-            //             creep.pickup(nearest);
-            //         } else if (nearest.structureType === STRUCTURE_CONTAINER) {
-            //             creep.withdraw(nearest, RESOURCE_ENERGY);
-            //         } else if (nearest.energy > 0) {
-            //             creep.harvest(nearest);
-            //         }
-            //     }
-            //     return;
-            // }
 
             // Если ресурсов на карте нет, идем на спавн
             creep.moveTo(config.defaultSpawn)

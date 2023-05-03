@@ -9,58 +9,50 @@ module.exports = {
     run: function (creep) {
         if (creep.memory.building && creep.store[RESOURCE_ENERGY] === 0) {
             creep.memory.building = false;
-            // creep.say('🔄 harvest');
         }
         if (!creep.memory.building && creep.store.getFreeCapacity() === 0) {
             creep.memory.building = true;
-            // creep.say('🚧 build');
         }
 
         if (creep.memory.building) {
-            let targets = [];
-            targets = creep.pos.findInRange(FIND_STRUCTURES, 16, {
+            //Repair first
+            let structsRepair = creep.pos.findInRange(FIND_STRUCTURES, 16, {
                 filter: (structure) => {
                     return (
                         structure.hits < structure.hitsMax
                         && structure.structureType !== STRUCTURE_WALL
-                        // && structure.structureType !== STRUCTURE_RAMPART
+                        && structure.structureType !== STRUCTURE_RAMPART
                     );
                 }
             });
-            if (targets.length > 0) {
-                targets.sort((a, b) => a.ticksToDecay - b.ticksToDecay);
-                targets.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
-                if (creep.repair(targets[0]) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                }
+            if (structsRepair.length > 0) {
+                structsRepair.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
+                creep.moveToAndPerform(structsRepair[0], 'repair');
                 return;
             }
 
-            targets = [];
+            // Constructing
             for (let priority of config.constructionSitePriority) {
-                targets = creep.room.find(FIND_CONSTRUCTION_SITES, {
+                let structsConstruct = creep.room.find(FIND_CONSTRUCTION_SITES, {
                     filter: (site) => site.structureType === priority
                 });
-                if (targets.length > 0) {
-                    targets.sort((a, b) => b.progress - a.progress); // Sort by most progress first
-                    let res = creep.build(targets[0]);
-                    if (res === ERR_NOT_IN_RANGE) {
-                        creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                    }
+                if (structsConstruct.length > 0) {
+                    structsConstruct.sort((a, b) => b.progress - a.progress); // Sort by most progress first
+                    creep.moveToAndPerform(structsConstruct[0], 'builde');
                     return;
                 }
             }
 
-            targets = [];
-            targets = creep.room.find(FIND_STRUCTURES, {
+            // Repair others
+            structsRepair = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return (structure.hits < structure.hitsMax);
                 }
             });
-            if (targets.length > 0) {
-                targets.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
-                if (creep.repair(targets[0]) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
+            if (structsRepair.length > 0) {
+                structsRepair.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
+                if (creep.repair(structsRepair[0]) === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(structsRepair[0], {visualizePathStyle: {stroke: '#ffffff'}});
                 }
 
 
@@ -85,24 +77,21 @@ module.exports = {
                     return miners.length < 3 && enemies.length === 0 && source.energy > 0;
                 }
             });
-            // Combine the lists of resources, containers, and sources
-            const allSources = resources_droped.concat(containers).concat(sources);
-            if (allSources.length) {
-                // Find the closest source
-                const nearest = creep.pos.findClosestByRange(allSources);
-                // Move towards the closest source and perform the appropriate action
-                if (!creep.pos.isNearTo(nearest)) {
-                    creep.moveTo(nearest, {visualizePathStyle: {stroke: '#ffaa00'}});
-                } else {
-                    if (nearest.amount > 0) {
-                        creep.pickup(nearest);
-                    } else if (nearest.structureType === STRUCTURE_CONTAINER) {
-                        creep.withdraw(nearest, RESOURCE_ENERGY);
-                    } else if (nearest.energy > 0) {
-                        creep.harvest(nearest);
-                    }
-                }
 
+            if (containers.length) {
+                let nearest = creep.pos.findClosestByRange(containers);
+                creep.moveToAndPerform(nearest, 'withdraw', RESOURCE_ENERGY);
+                return;
+            }
+            if (sources.length) {
+                let nearest = creep.pos.findClosestByRange(sources);
+                creep.moveToAndPerform(nearest, 'harvest');
+                return;
+            }
+            if (resources_droped.length) {
+                let nearest = creep.pos.findClosestByRange(resources_droped);
+                creep.moveToAndPerform(nearest, 'pickup');
+                return;
             }
         }
     },

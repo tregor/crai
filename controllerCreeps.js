@@ -11,46 +11,76 @@ const controllerCreeps = {
                 role.run(creep);
             }
         }
-        for (const name in Memory.creeps) {
-            if (!(name in Game.creeps)) {
-                console.log(`Creep ${name} dead`)
-                delete Memory.creeps[name];
-                // const roomName = Memory.creeps[name]._move.room;
-                // const room = Game.rooms[roomName];
-                // if (!room){
-                //     continue;
-                // }
-                // let tombstone = room.find(FIND_TOMBSTONES, {
-                //     filter: (tombstone) => tombstone.creep.name === name
-                // });
-                // if (tombstone.length > 0){
-                //     tombstone = tombstone[0];
-                //     const room = tombstone.room;
-                //     if (tombstone.memory && !tombstone.memory.hadFuneral){
-                //         const nearbyCreeps = tombstone.pos.findInRange(FIND_MY_CREEPS, 1, {
-                //             filter: c => c.id !== name // исключаем умершего крипа из выбора
-                //         });
-                //         if (nearbyCreeps.length >= 5) {
-                //             console.log(`Creep ${name}'s funeral has been held.`);
-                //             tombstone.memory.hadFuneral = true;
-                //             // tombstone.destroy();
-                //             delete Memory.creeps[name];
-                //         } else {
-                //             // выбираем 5 случайных крипов из списка соседних крипов
-                //             const funeralAttendees = _.sampleSize(nearbyCreeps, 5);
-                //             funeralAttendees.forEach(creep => creep.moveTo(tombstone));
-                //             console.log(`Waiting for more creeps to attend ${name}'s funeral.`);
-                //         }
-                //     }else{
-                //         // tombstone.destroy();
-                //         delete Memory.creeps[name];
-                //     }
-                // }else{
-                //     delete Memory.creeps[name];
-                // }
+        for (const creepName in Memory.creeps) {
+            if (!(creepName in Game.creeps)) {
+                for (const roomName in Game.rooms) {
+                    const room = Game.rooms[roomName];
+                    const tombstones = room.find(FIND_TOMBSTONES, {filter: {creep: {name: creepName}}});
+                    const events = room.getEventLog().filter(event => event.event === EVENT_OBJECT_DESTROYED && event.data && event.data.type === 'creep' && event.data.creep === creepName);
+
+                    if (events.length) {
+                        const creep = Game.getObjectById(events[0].objectId)
+                        console.log(JSON.stringify(creep));
+                        console.log(`Creep ${creep.getFullname()} killed in room ${roomName} ` + JSON.stringify(events));
+                        // Do something with the information, e.g. add to statistics or send notification
+                        delete Memory.creeps[creepName];
+                        break; // Once we've found the room, we don't need to continue iterating
+                    }
+                    if (tombstones.length) {
+                        const creep = tombstones[0].creep;
+                        console.log(`Creep ${creep.getFullname()} died in room ${roomName}`);
+                        // Do something with the information, e.g. add to statistics or send notification
+                        delete Memory.creeps[creepName];
+                        break; // Once we've found the room, we don't need to continue iterating
+                    }
+                }
             }
         }
     }
 };
+
+Creep.prototype.getFullname = function () {
+    let role = creepRoles[this.memory.role];
+    let labelRole = (role.roleName.charAt(0).toUpperCase() + role.roleName.slice(1));
+    return `T${this.memory.tier}${labelRole}`;
+}
+Creep.prototype.moveToAndPerform = function (target, action, ...args) {
+    let res = OK;
+    const moveOpts = {
+        noPathFinding: (Game.cpu.getUsed() >= 20),
+        reusePath: 64,
+        visualizePathStyle: {stroke: '#ffffff'},
+
+        ignoreCreeps: true,
+        ignoreDestructibleStructures: false,
+        ignoreRoads: false,
+
+        // ignore: [],
+        // avoid: [],
+        maxOps: 2000,   // CPU /1000
+        serialize: false,
+        maxRooms: 1,
+        range: 0,
+        plainCost: 1,
+        // swampCost: 5,
+        swampCost: 25,
+    };
+
+    if (typeof action === 'function') {
+        res = action.call(this, target, ...args);
+    } else {
+        res = this[action](target, ...args);
+    }
+
+    if (res === ERR_NOT_IN_RANGE) {
+        res = this.moveTo(target, moveOpts);
+        if (res === ERR_NOT_FOUND) {
+            moveOpts.noPathFinding = false;
+            res = this.moveTo(target, moveOpts);
+        }
+    }
+    return res;
+};
+
 
 module.exports = controllerCreeps;

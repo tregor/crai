@@ -37,24 +37,25 @@ const spawnerController = {
 
             // Display debug information using RoomVisuals
             const cpuUsage = Game.cpu.getUsed() * 100;
-            const numCreeps = room.find(FIND_MY_CREEPS).length;
+            const numWorkers = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'worker'}}}).length;
             if ((room.energyCapacityAvailable < energyReqForTier(tier)) && room.energyAvailable >= energyReqForTier(tier - 1)) {
                 tier = tier - 1;
             }
             // const primes = [2, 3, 5, 7, 11, 13, 17, 19];
             const primes = [1, 2, 3, 4, 5, 6, 7, 8];
-            const minCreepsForTier = config.creepsPerTier[tier - 1];
+            // const minCreepsForTier = config.creepsPerTier[tier - 1];
+            const minCreepsForTier = 1;
             createDebugVisual(room.name, spawn.pos.x, spawn.pos.y,
-                `T${tier} Spawner`,
+                `T${tier} (${room.controller.progress}/${room.controller.progressTotal})`,
                 `Energy: ${room.energyAvailable}/${energyReqForTier(tier)}(${room.energyCapacityAvailable}`,
                 `CPU Usage: ${cpuUsage.toFixed(2)}`,
-                `Num Creeps: ${numCreeps}`,
+                `Num Creeps: ${myCreeps.length}`,
             );
 
             if (spawn.spawning) {
                 continue;
             }
-            if (numCreeps === 0 && room.energyAvailable >= 300) {
+            if (numWorkers === 0 && room.energyAvailable >= 300) {
                 spawnRole(config.defaultSpawn, creepRoles.worker, 1);
                 continue;
             }

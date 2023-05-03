@@ -46,20 +46,18 @@ module.exports = {
                     }
                 });
                 if (sources.length > 0) {
-                    console.log("Found sources in the room" + sources[0].room.name);
                     creep.memory.sourceId = _.sample(sources).id;
                     return;
                 }
             }
         } else {
             if (source.energy > 0) {
-                if (creep.pos.isNearTo(source)) {
-                    creep.harvest(source);
-                } else {
-                    creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
-                }
+                creep.moveToAndPerform(source, 'harvest');
+                return;
             } else {
-                creep.memory.sourceId = null;
+                if (source.ticksToRegeneration > 60) {//TODO replace 60 with calculated ETA to new mines
+                    creep.memory.sourceId = null;
+                }
             }
         }
     },

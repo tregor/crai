@@ -15,7 +15,21 @@ module.exports = {
             // creep.say('🚚 deliver');
         }
 
+
         if (creep.memory.delivering) {
+            // Find spawns, extensions or towers and deliver energy to them
+            let targets = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (structure.structureType === STRUCTURE_EXTENSION
+                            || structure.structureType === STRUCTURE_SPAWN)
+                        && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                }
+            });
+            if (targets.length) {
+                creep.moveToAndPerform(targets[0], 'transfer', RESOURCE_ENERGY);
+                return;
+            }
+
             // Find the nearest container and transfer energy to it
             let containers = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
@@ -23,31 +37,11 @@ module.exports = {
                         structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                 }
             });
-            // if (containers.length > 0) {
-            //     let nearestContainer = creep.pos.findClosestByRange(containers);
-            //     if (creep.transfer(nearestContainer, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-            //         creep.moveTo(nearestContainer, {visualizePathStyle: {stroke: '#ffffff'}});
-            //     }
-            //     return;
-            // }
-
-            // Find spawns, extensions or towers and deliver energy to them
-            let targets = creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (structure.structureType === STRUCTURE_EXTENSION ||
-                            structure.structureType === STRUCTURE_SPAWN ||
-                            structure.structureType === STRUCTURE_TOWER) &&
-                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-                }
-            });
-            if (targets.length) {
-                if (creep.transfer(targets[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                }
-
-
+            if (containers.length > 0) {
+                let nearestContainer = creep.pos.findClosestByRange(containers);
+                creep.moveToAndPerform(nearestContainer, 'transfer', RESOURCE_ENERGY);
+                return;
             }
-
 
         } else {
             // Dropped resources
@@ -58,8 +52,11 @@ module.exports = {
                 }
             });
             if (nearestSource) {
-                if (creep.pickup(nearestSource) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(nearestSource, {visualizePathStyle: {stroke: '#ffaa00'}});
+                creep.moveToAndPerform(nearestSource, 'pickup');
+                return;
+            } else {
+                if (creep.store[RESOURCE_ENERGY] > 0) {
+                    creep.memory.delivering = true;
                 }
             }
         }
@@ -69,11 +66,14 @@ module.exports = {
         const resources = _.filter(room.find(FIND_DROPPED_RESOURCES), (resource) => resource.resourceType === RESOURCE_ENERGY);
         const energyDropped = _.sum(resources, (r) => (r.amount));
 
+        if (haulers.length === 0) {
+            return 0;
+        }
         if (resources.length === 0) {
             return 1;
         }
 
-        return ((haulers.length * (HARVEST_POWER)) / energyDropped) * 24;
+        return ((haulers.length * (HARVEST_POWER * 100)) / energyDropped) * 32;
         // return ((haulers.length / 2) / resources.length) * (1 - (room.controller.level / 8));
     },
     /** @param {number} tier **/
