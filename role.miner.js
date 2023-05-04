@@ -11,12 +11,13 @@ module.exports = {
         if (!source) {
             const sources = creep.room.find(FIND_SOURCES_ACTIVE, {
                 filter: (source) => {
-                    // const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
-                    //     filter: (miner) => miner.id !== creep.id && miner.memory.role === this.roleName
-                    // });
-                    const minersA = _.filter(Game.creeps, (creep) => creep.memory.sourceId === source.id)
-                    const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
-                    return ((minersA.length < config.minersPerSource) && (enemies.length === 0) && (source.energy > 0));
+                    const miners = _.filter(Game.creeps, (miner) =>
+                        miner.id !== creep.id
+                        && miner.memory.role === this.roleName
+                        && miner.memory.sourceId === source.id
+                    );
+                    const enemies = source.room.find(FIND_HOSTILE_CREEPS);
+                    return ((miners.length < config.minersPerSource) && (enemies.length === 0) && (source.energy > 0));
                 }
             });
             if (sources.length > 0) {
@@ -29,22 +30,22 @@ module.exports = {
             const adjacentRooms = Game.map.describeExits(creep.room.name);
             for (const roomDirection in adjacentRooms) {
                 const roomName = adjacentRooms[roomDirection];
-                // console.log(`Looking in ${roomName}`)
                 const room = Game.rooms[roomName];
                 if (!room || !Memory.seenRooms[roomName]) {
                     // Room not explored
-                    // console.log(`Room not explored`)
-                    creep.moveTo(new RoomPosition(25, 25, roomName), {visualizePathStyle: {stroke: '#ffaa00'}});
+                    // console.log(`Miner's Room ${roomName} not explored`)
+                    // creep.moveTo(new RoomPosition(25, 25, roomName), {visualizePathStyle: {stroke: '#ffaa00'}});
                     continue;
                 }
                 const sources = room.find(FIND_SOURCES_ACTIVE, {
                     filter: (source) => {
-                        // const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
-                        //     filter: (miner) => miner.id !== creep.id && miner.memory.role === this.roleName
-                        // });
-                        const minersA = _.filter(Game.creeps, (creep) => creep.memory.sourceId === source.id)
-                        const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
-                        return ((minersA.length < config.minersPerSource) && (enemies.length === 0) && (source.energy > 0));
+                        const miners = _.filter(Game.creeps, (miner) =>
+                            miner.id !== creep.id
+                            && miner.memory.role === this.roleName
+                            && miner.memory.sourceId === source.id
+                        );
+                        const enemies = source.room.find(FIND_HOSTILE_CREEPS);
+                        return ((miners.length < config.minersPerSource) && (enemies.length === 0) && (source.energy > 0));
                     }
                 });
                 if (sources.length > 0) {
@@ -56,8 +57,12 @@ module.exports = {
             }
         } else {
             const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
-                filter: (miner) => miner.id !== creep.id && miner.memory.role === this.roleName
+                filter: (miner) =>
+                    miner.id !== creep.id
+                    && miner.memory.role === this.roleName
+                    && miner.memory.sourceId === source.id
             });
+
             if (miners.length > config.minersPerSource) {
                 creep.memory.sourceId = null;
                 return;

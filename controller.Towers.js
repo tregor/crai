@@ -17,13 +17,13 @@ const towerController = {
                 const energyPercentage = tower.store[RESOURCE_ENERGY] / tower.store.getCapacity(RESOURCE_ENERGY);
 
                 // Автоматическое включение и выключение башни
-                if (energyPercentage < 0.2) {
+                if (energyPercentage < 0.1) {
                     continue; // Если энергии меньше 20%, выключаем башню
                 }
 
                 // Атака врагов
                 const closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-                if (closestHostile && energyPercentage >= 0.2) {
+                if (closestHostile && energyPercentage >= 0.1) {
                     tower.attack(closestHostile);
                     continue;
                 }
@@ -32,7 +32,7 @@ const towerController = {
                 const closestDamagedFriendly = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
                     filter: (c) => c.hits < c.hitsMax
                 });
-                if (closestDamagedFriendly && energyPercentage >= 0.3) {
+                if (closestDamagedFriendly && energyPercentage >= 0.4) {
                     tower.heal(closestDamagedFriendly);
                     continue;
                 }
@@ -44,7 +44,7 @@ const towerController = {
                     // && s.structureType !== STRUCTURE_WALL
                     // && s.structureType !== STRUCTURE_RAMPART
                 });
-                if (closestDamagedStructure && energyPercentage >= 0.5) {
+                if (closestDamagedStructure && energyPercentage >= 0.8) {
                     tower.repair(closestDamagedStructure);
 
                 }

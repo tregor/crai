@@ -18,8 +18,8 @@ module.exports = {
     },
     minersPerSource: 1,
     creepsPerTier:
-        [2, 3, 5, 7, 11, 13, 17, 19],
-    // [1, 3, 4, 6, 8,],
+    // [2, 3, 5, 7, 11, 13, 17, 19],
+        [1, 2, 4, 6, 9, 13],
     constructionSitePriority: [
         STRUCTURE_LINK,
         STRUCTURE_EXTRACTOR,
