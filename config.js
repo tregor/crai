@@ -37,8 +37,8 @@ module.exports = {
         STRUCTURE_STORAGE,
         STRUCTURE_CONTAINER,
 
+        STRUCTURE_ROAD,
         STRUCTURE_RAMPART,
         STRUCTURE_WALL,
-        STRUCTURE_ROAD,
     ],
 };
