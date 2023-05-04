@@ -9,6 +9,7 @@ module.exports = {
         //Если крип не в пути к источнику энергии, ищем его и отправляемся туда
         const source = Game.getObjectById(creep.memory.sourceId);
         if (!source) {
+            // Looking for free sources in same room
             const sources = creep.room.find(FIND_SOURCES_ACTIVE, {
                 filter: (source) => {
                     const miners = _.filter(Game.creeps, (miner) =>
@@ -21,12 +22,11 @@ module.exports = {
                 }
             });
             if (sources.length > 0) {
-                // Найти ближайший источник ресурсов
-                const closestSource = creep.pos.findClosestByRange(sources);
-                creep.memory.sourceId = closestSource.id;
+                creep.memory.sourceId = creep.pos.findClosestByRange(sources).id;
                 return;
             }
 
+            // Looking in adjacent room
             const adjacentRooms = Game.map.describeExits(creep.room.name);
             for (const roomDirection in adjacentRooms) {
                 const roomName = adjacentRooms[roomDirection];
@@ -34,7 +34,7 @@ module.exports = {
                 if (!room || !Memory.seenRooms[roomName]) {
                     // Room not explored
                     // console.log(`Miner's Room ${roomName} not explored`)
-                    // creep.moveTo(new RoomPosition(25, 25, roomName), {visualizePathStyle: {stroke: '#ffaa00'}});
+                    creep.moveTo(new RoomPosition(25, 25, roomName));
                     continue;
                 }
                 const sources = room.find(FIND_SOURCES_ACTIVE, {
@@ -48,6 +48,7 @@ module.exports = {
                         return ((miners.length < config.minersPerSource) && (enemies.length === 0) && (source.energy > 0));
                     }
                 });
+                console.log(room.name + sources.length)
                 if (sources.length > 0) {
                     creep.memory.sourceId = _.sample(sources).id;
                     return;

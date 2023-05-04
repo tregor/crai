@@ -44,7 +44,7 @@ const spawnerController = {
             const minCreepsForTier = config.creepsPerTier[tier - 1];
             // const minCreepsForTier = 1;
             createDebugVisual(room.name, spawn.pos.x, spawn.pos.y,
-                `T${tier} (${Math.round(room.controller.progress / room.controller.progressTotal * 100)}%)`,
+                `T${tier} ${Math.round(room.controller.progress / room.controller.progressTotal * 100)}%(${room.controller.progress})`,
                 `Energy: ${room.energyAvailable}/${energyReqForTier(tier)} (${room.energyCapacityAvailable})`,
                 `CPU Usage: ${cpuUsage.toFixed(2)}`,
                 `Num Creeps: ${myCreeps.length}`,

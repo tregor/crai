@@ -17,21 +17,6 @@ module.exports = {
 
 
         if (creep.memory.delivering) {
-            // Find spawns, extensions or towers and deliver energy to them
-            let targets = creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (
-                            structure.structureType === STRUCTURE_EXTENSION
-                            || structure.structureType === STRUCTURE_SPAWN
-                            || structure.structureType === STRUCTURE_TOWER)
-                        && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-                }
-            });
-            if (targets.length) {
-                creep.moveToAndPerform(creep.pos.findClosestByRange(targets), 'transfer', RESOURCE_ENERGY);
-                return;
-            }
-
             // Find the nearest container and transfer energy to it
             let containers = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
@@ -43,19 +28,45 @@ module.exports = {
                 let nearestContainer = creep.pos.findClosestByRange(containers);
                 creep.moveToAndPerform(nearestContainer, 'transfer', RESOURCE_ENERGY);
                 return;
-            } else {
-                // Find anything that can have energy capacity
-                let targets = creep.room.find(FIND_STRUCTURES, {
-                    filter: (structure) => {
-                        return structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-                    }
-                });
-                if (targets.length) {
-                    creep.moveToAndPerform(creep.pos.findClosestByRange(targets), 'transfer', RESOURCE_ENERGY);
-                    return;
-                }
             }
 
+            // Find spawns, extensions or towers and deliver energy to them
+            const extensions = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (
+                            structure.structureType === STRUCTURE_EXTENSION
+                            || structure.structureType === STRUCTURE_SPAWN)
+                        && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                }
+            });
+            if (extensions.length) {
+                creep.moveToAndPerform(creep.pos.findClosestByRange(extensions), 'transfer', RESOURCE_ENERGY);
+                return;
+            }
+
+            // Only towers after spawns
+            const towers = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (
+                            structure.structureType === STRUCTURE_TOWER)
+                        && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                }
+            });
+            if (towers.length) {
+                creep.moveToAndPerform(creep.pos.findClosestByRange(towers), 'transfer', RESOURCE_ENERGY);
+                return;
+            }
+
+            // Find anything that can have energy capacity
+            const targets = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                }
+            });
+            if (targets.length) {
+                creep.moveToAndPerform(creep.pos.findClosestByRange(targets), 'transfer', RESOURCE_ENERGY);
+                return;
+            }
         } else {
             // Dropped resources
             let roomDropped = creep.room.find(FIND_DROPPED_RESOURCES, {
