@@ -20,14 +20,19 @@ module.exports = {
                 filter: (structure) => {
                     return (
                         structure.hits < structure.hitsMax
-                        && structure.structureType !== STRUCTURE_WALL
                         && structure.structureType !== STRUCTURE_RAMPART
+                        && structure.structureType !== STRUCTURE_WALL
+                        && structure.structureType !== STRUCTURE_ROAD
+                        && structure.structureType !== STRUCTURE_STORAGE
+                        && structure.structureType !== STRUCTURE_CONTAINER
                     );
                 }
             });
             if (structsRepair.length > 0) {
                 structsRepair.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
-                creep.moveToAndPerform(structsRepair[0], 'repair');
+                const topStructs = structsRepair.slice(0, 10);
+                const closestStruct = creep.pos.findClosestByRange(topStructs);
+                creep.moveToAndPerform(closestStruct, 'repair');
                 return;
             }
 
@@ -38,7 +43,9 @@ module.exports = {
                 });
                 if (structsConstruct.length > 0) {
                     structsConstruct.sort((a, b) => b.progress - a.progress); // Sort by most progress first
-                    creep.moveToAndPerform(structsConstruct[0], 'builde');
+                    const topStructs = structsConstruct.slice(0, 10);
+                    const closestStruct = creep.pos.findClosestByRange(topStructs);
+                    creep.moveToAndPerform(closestStruct, 'build');
                     return;
                 }
             }
@@ -51,11 +58,10 @@ module.exports = {
             });
             if (structsRepair.length > 0) {
                 structsRepair.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
-                if (creep.repair(structsRepair[0]) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(structsRepair[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                }
-
-
+                const topStructs = structsRepair.slice(0, 10);
+                const closestStruct = creep.pos.findClosestByRange(topStructs);
+                creep.moveToAndPerform(closestStruct, 'repair');
+                return;
             }
         } else {
             const resources_droped = creep.room.find(FIND_DROPPED_RESOURCES, {
@@ -83,14 +89,14 @@ module.exports = {
                 creep.moveToAndPerform(nearest, 'withdraw', RESOURCE_ENERGY);
                 return;
             }
-            if (sources.length) {
-                let nearest = creep.pos.findClosestByRange(sources);
-                creep.moveToAndPerform(nearest, 'harvest');
-                return;
-            }
             if (resources_droped.length) {
                 let nearest = creep.pos.findClosestByRange(resources_droped);
                 creep.moveToAndPerform(nearest, 'pickup');
+                return;
+            }
+            if (sources.length) {
+                let nearest = creep.pos.findClosestByRange(sources);
+                creep.moveToAndPerform(nearest, 'harvest');
                 return;
             }
         }
@@ -145,6 +151,4 @@ module.exports = {
 
         return body;
     }
-
-
 };

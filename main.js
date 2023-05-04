@@ -1,9 +1,7 @@
-const creepsController = require('./controllerCreeps');
-const spawnController = require('./controllerSpawner');
 const roomManager = require('./controller.RoomManager');
-const towerController = require('./controller.towers');
-const config = require('./config');
-// const creepRoles = require('./roles');
+const spawnController = require('./controller.Spawner');
+const creepsController = require('./controller.Creeps');
+const towerController = require('./controller.Towers');
 
 module.exports = {
     loop: function () {

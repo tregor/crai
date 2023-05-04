@@ -17,32 +17,28 @@ module.exports = {
         5: 1800,
     },
     minersPerSource: 1,
-    creepsPerTier: [
-        1,
-        3,
-        4,
-        6,
-        8,
-    ],
+    creepsPerTier:
+        [2, 3, 5, 7, 11, 13, 17, 19],
+    // [1, 3, 4, 6, 8,],
     constructionSitePriority: [
         STRUCTURE_LINK,
         STRUCTURE_EXTRACTOR,
-        STRUCTURE_OBSERVER,
-        STRUCTURE_POWER_SPAWN,
         STRUCTURE_LAB,
         STRUCTURE_TERMINAL,
-        STRUCTURE_NUKER,
         STRUCTURE_FACTORY,
+        STRUCTURE_OBSERVER,
+        STRUCTURE_POWER_SPAWN,
+        STRUCTURE_NUKER,
 
+        STRUCTURE_TOWER,
         STRUCTURE_SPAWN,
         STRUCTURE_EXTENSION,
 
         STRUCTURE_STORAGE,
         STRUCTURE_CONTAINER,
 
-        STRUCTURE_ROAD,
-        STRUCTURE_WALL,
-        STRUCTURE_TOWER,
         STRUCTURE_RAMPART,
+        STRUCTURE_WALL,
+        STRUCTURE_ROAD,
     ],
 };

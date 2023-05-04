@@ -49,18 +49,22 @@ Creep.prototype.getFullname = function () {
 }
 Creep.prototype.moveToAndPerform = function (target, action, ...args) {
     let res = OK;
+    // const color = '#' + ('00000' + (this.getFullname().split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0) & 0xFFFFFF).toString(16)).substr(-6);
+    // noinspection CommaExpressionJS
+    const color = str => '#' + new Array(3).fill().map((_, i) => Math.floor(((this.getFullname().split('').reduce((a, b) => (((a << 5) - a) + b.charCodeAt(0)) & 0xFF), 0) >> (i * 8)) / 2 + 128).toString(16).padStart(2, '0')).join('');
+
     const moveOpts = {
         noPathFinding: (Game.cpu.getUsed() >= 20),
-        reusePath: 32,
+        reusePath: 16,
         visualizePathStyle: {
             fill: undefined,
             opacity: 0.6,
-            stroke: '#64ff64',
+            stroke: color,
             strokeWidth: 0.04,
             lineStyle: 'dotted',
         },
 
-        ignoreCreeps: true,
+        ignoreCreeps: false,
         ignoreDestructibleStructures: false,
         ignoreRoads: false,
 
@@ -75,7 +79,7 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
         swampCost: 25,
     };
 
-    // this.say(action)
+    this.say(action)
     if (typeof action === 'function') {
         res = action.call(this, target, ...args);
     } else {

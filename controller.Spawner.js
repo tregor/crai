@@ -41,10 +41,8 @@ const spawnerController = {
             if ((room.energyCapacityAvailable < energyReqForTier(tier)) && room.energyAvailable >= energyReqForTier(tier - 1)) {
                 tier = tier - 1;
             }
-            // const primes = [2, 3, 5, 7, 11, 13, 17, 19];
-            const primes = [1, 2, 3, 4, 5, 6, 7, 8];
-            // const minCreepsForTier = config.creepsPerTier[tier - 1];
-            const minCreepsForTier = 1;
+            const minCreepsForTier = config.creepsPerTier[tier - 1];
+            // const minCreepsForTier = 1;
             createDebugVisual(room.name, spawn.pos.x, spawn.pos.y,
                 `T${tier} (${Math.round(room.controller.progress / room.controller.progressTotal * 100)}%)`,
                 `Energy: ${room.energyAvailable}/${energyReqForTier(tier)} (${room.energyCapacityAvailable})`,
@@ -87,6 +85,7 @@ const spawnerController = {
             }
             console.log(JSON.stringify(rolesToSpawnCount));
             for (const roleToSpawn in rolesToSpawnCount) {
+                //TODO: Spawn roles from demand list by priorities (dyn setted from tasker)
                 for (let i = 0; i < rolesToSpawnCount[roleToSpawn]; i++) {
                     spawnRole(spawn, creepRoles[roleToSpawn], tier);
                     spawning = true
@@ -168,7 +167,7 @@ function spawnRole(spawn, role, tier) {
     const result = spawn.spawnCreep(body, creepName, {memory: memory});
 
     if (result === OK) {
-        console.log('Spawning new worker:', creepName, ` in room`, spawn.room.name, 'for cost', cost);
+        // console.log('Spawning new worker:', creepName, ` in room`, spawn.room.name, 'for cost', cost);
     } else {
         console.log(`The cost of a ${role.roleName} of Tier ${tier} is ${cost} energy units while ${spawn.room.energyAvailable} available.` + result);
     }

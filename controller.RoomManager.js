@@ -33,6 +33,6 @@ const RoomManager = {
     }
 };
 
-require('controller.tasks');
+require('controller.Tasker');
 
 module.exports = RoomManager;

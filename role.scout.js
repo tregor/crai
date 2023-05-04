@@ -65,9 +65,9 @@ module.exports = {
 
         // Перейти в ближайшую неисследованную комнату или случайную, если все исследованы
         Memory.seenRooms[creep.room.name] = true;
-        if (!Game.rooms[creep.memory.targetRoom]) {
-            creep.memory.targetRoom = null;
-        }
+        // if (!Game.rooms[creep.memory.targetRoom]) {
+        //     creep.memory.targetRoom = null;
+        // }
         if ((!creep.memory.targetRoom) || (creep.room.name === creep.memory.targetRoom)) {
             if (!Game.map.describeExits(creep.room.name)) {
                 return;
