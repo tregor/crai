@@ -58,18 +58,7 @@ module.exports = {
                 }
             }
         } else {
-            const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
-                filter: (miner) =>
-                    miner.id !== creep.id
-                    && miner.memory.role === this.roleName
-                    && miner.memory.sourceId === source.id
-            });
-
-            if (miners.length > config.minersPerSource) {
-                creep.memory.sourceId = null;
-                return;
-            }
-            if (source.energy > 0 || source.ticksToRegeneration > 300) { //TODO replace 300 with calculated ETA to new mines
+            if (source.energy > 0 || source.ticksToRegeneration < 300) { //TODO replace 300 with calculated ETA to new mines
                 creep.moveToAndPerform(source, 'harvest');
                 return;
             } else {

@@ -48,7 +48,7 @@ Creep.prototype.getFullname = function () {
     return `T${this.memory.tier}${labelRole}`;
 }
 Creep.prototype.moveToAndPerform = function (target, action, ...args) {
-    if (this.fatigue > 0) return -11;
+    if (this.fatigue > 0) return OK;//TIRED
     let res = OK;
     // const color = '#' + ('00000' + (this.getFullname().split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0) & 0xFFFFFF).toString(16)).substr(-6);
     // noinspection CommaExpressionJS
@@ -107,7 +107,7 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
         moveOpts.ignoreRoads = false;
         res = this.moveTo(target, moveOpts);
     }
-    this.say(res)
+    // this.say(res)
     return res;
 };
 

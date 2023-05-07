@@ -88,6 +88,8 @@ module.exports = {
                 let nearest = creep.pos.findClosestByRange(containers);
                 if (creep.moveToAndPerform(nearest, 'withdraw', RESOURCE_ENERGY) === OK) {
                     return;
+                } else {
+                    creep.say(creep.moveToAndPerform(nearest, 'withdraw', RESOURCE_ENERGY))
                 }
             }
             if (resources_droped.length) {
@@ -148,17 +150,14 @@ module.exports = {
     },
     getBody: function (tier) {
         let body = [];
-        let energy = config.energyPerTiers[tier];
-        let workParts = 1;
-        let carryParts = 1;
-        let moveParts = 1;
+        let energyRemain = config.energyPerTiers[tier];
 
-        // Вычисляем максимальное количество частей для каждого типа
-        workParts = Math.min(Math.floor((energy - moveParts * BODYPART_COST[MOVE]) / BODYPART_COST[WORK]), 5);
-        carryParts = Math.min(Math.floor((energy - moveParts * BODYPART_COST[MOVE] - workParts * BODYPART_COST[WORK]) / BODYPART_COST[CARRY]), 5);
-        moveParts = Math.min(Math.floor((energy - workParts * BODYPART_COST[WORK] - carryParts * BODYPART_COST[CARRY]) / BODYPART_COST[MOVE]), 10);
+        // Рассчитываем количество частей тела для каждого типа
+        let workParts = Math.floor(energyRemain / (BODYPART_COST[WORK] + BODYPART_COST[CARRY] + BODYPART_COST[MOVE]));
+        let carryParts = workParts;
+        let moveParts = workParts;
 
-        // Добавляем части тела в соответствующем порядке
+        // Добавляем части тела в массив body
         for (let i = 0; i < workParts; i++) {
             body.push(WORK);
         }
