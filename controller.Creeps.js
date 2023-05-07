@@ -21,14 +21,14 @@ const controllerCreeps = {
                     if (events.length) {
                         const creep = Game.getObjectById(events[0].objectId)
                         console.log(JSON.stringify(creep));
-                        console.log(`Creep ${creep.getFullname()} killed in room ${roomName} ` + JSON.stringify(events));
+                        console.log(`${creep.getFullname()} killed in room ${roomName} ` + JSON.stringify(events));
                         // Do something with the information, e.g. add to statistics or send notification
                         delete Memory.creeps[creepName];
                         break; // Once we've found the room, we don't need to continue iterating
                     }
                     if (tombstones.length) {
                         const creep = tombstones[0].creep;
-                        console.log(`Creep ${creep.getFullname()} died in room ${roomName}`);
+                        console.log(`${creep.getFullname()} died in room ${roomName}`);
                         // Do something with the information, e.g. add to statistics or send notification
                         delete Memory.creeps[creepName];
                         break; // Once we've found the room, we don't need to continue iterating
@@ -48,6 +48,7 @@ Creep.prototype.getFullname = function () {
     return `T${this.memory.tier}${labelRole}`;
 }
 Creep.prototype.moveToAndPerform = function (target, action, ...args) {
+    if (this.fatigue > 0) return -11;
     let res = OK;
     // const color = '#' + ('00000' + (this.getFullname().split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0) & 0xFFFFFF).toString(16)).substr(-6);
     // noinspection CommaExpressionJS
@@ -69,7 +70,9 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
         ignoreRoads: false,
 
         // ignore: [],
-        // avoid: [],
+        // avoid: [
+        //
+        // ],
         maxOps: 2000,   // CPU /1000
         serialize: false,
         maxRooms: 1,
@@ -79,7 +82,10 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
         swampCost: 25,
     };
 
-    this.say(action)
+    // this.say(action)
+    if (!this.memory.action || this.memory.action !== action) {
+        this.memory.action = action;
+    }
     if (typeof action === 'function') {
         res = action.call(this, target, ...args);
     } else {
@@ -88,11 +94,20 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
 
     if (res === ERR_NOT_IN_RANGE || !this.pos.isNearTo(target)) {
         res = this.moveTo(target, moveOpts);
-        if (res === ERR_NOT_FOUND) {
-            moveOpts.noPathFinding = false;
-            res = this.moveTo(target, moveOpts);
-        }
     }
+    if (res === ERR_NOT_FOUND) {
+        moveOpts.noPathFinding = false;
+        res = this.moveTo(target, moveOpts);
+    }
+    if (res === ERR_NO_PATH) {
+        moveOpts.noPathFinding = false;
+        moveOpts.reusePath = 0;
+        moveOpts.ignoreCreeps = true;
+        moveOpts.ignoreDestructibleStructures = true;
+        moveOpts.ignoreRoads = false;
+        res = this.moveTo(target, moveOpts);
+    }
+    this.say(res)
     return res;
 };
 
