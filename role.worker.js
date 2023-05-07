@@ -17,14 +17,20 @@ module.exports = {
         }
 
         if (creep.memory.transporting) {
+            // Charge controller untill max LVL
+            if (creep.room.controller.level < 2) {
+                creep.moveToAndPerform(creep.room.controller, 'transfer', RESOURCE_ENERGY);
+                return;
+            }
             // Do not allow downgrade of controller
-            if (creep.room.controller.ticksToDowngrade < 9999) {
+            if (creep.room.controller.ticksToDowngrade < 999) {
                 creep.moveToAndPerform(creep.room.controller, 'transfer', RESOURCE_ENERGY);
                 return;
             }
 
             // Help haulers
-            if (roleHauler.getSuccessRate(creep.room) < 0.1) {
+            const haulers = creep.room.find(FIND_MY_CREEPS, {filter: (creep) => creep.memory.role === 'Hauler'});
+            if (roleHauler.getSuccessRate(creep.room) < 0.1 || haulers.length === 0) {
                 creep.say("Hauler");
                 const nearest = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: (structure) => {
@@ -63,11 +69,8 @@ module.exports = {
             // Если крип не несет ресурс
             const sources = creep.room.find(FIND_SOURCES_ACTIVE, {
                 filter: (source) => {
-                    const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
-                        filter: (miner) => miner.id !== creep.id
-                    });
                     const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 4);
-                    return miners.length < (config.minersPerSource + 1) && enemies.length === 0 && source.energy > 0;
+                    return enemies.length === 0 && source.energy > 0;
                 }
             });
             const containers = creep.room.find(FIND_STRUCTURES, {
@@ -77,31 +80,42 @@ module.exports = {
             });
             const resources_droped = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 8, {
                 filter: (resource) => {
-                    return resource.resourceType === RESOURCE_ENERGY && resource.amount >= creep.store.getFreeCapacity(RESOURCE_ENERGY);
+                    return resource.resourceType === RESOURCE_ENERGY && resource.amount > 0;
                 }
             });
 
             if (containers.length) {
                 let nearest = creep.pos.findClosestByRange(containers);
-                creep.moveToAndPerform(nearest, 'withdraw', RESOURCE_ENERGY);
-                return;
+                if (creep.moveToAndPerform(nearest, 'withdraw', RESOURCE_ENERGY) === OK) {
+                    return;
+                }
             }
             if (resources_droped.length) {
                 let nearest = creep.pos.findClosestByRange(resources_droped);
-                creep.moveToAndPerform(nearest, 'pickup');
-                return;
+                if (creep.moveToAndPerform(nearest, 'pickup', RESOURCE_ENERGY) === OK) {
+                    return;
+                }
             }
             if (sources.length) {
                 let nearest = creep.pos.findClosestByRange(sources);
-                creep.moveToAndPerform(nearest, 'harvest');
-                return;
+                if (creep.moveToAndPerform(nearest, 'harvest', RESOURCE_ENERGY) === OK) {
+                    return;
+                }
+            }
+            if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+                creep.memory.transporting = true;
             }
 
             // Если ресурсов на карте нет, идем на спавн
-            creep.moveTo(config.defaultSpawn)
+            creep.moveTo(config.flagIdle)
         }
     },
+
+
     getSuccessRate: function (room) {
+        const numWorkers = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'worker'}}}).length;
+        return (numWorkers / config.creepsPerTier[room.controller.level]);
+
         const numResources = room.find(FIND_DROPPED_RESOURCES, {filter: {resourceType: RESOURCE_ENERGY}}).length;
         const numBuilders = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'builder'}}}).length;
         const numConstructionSites = room.find(FIND_CONSTRUCTION_SITES).length;
@@ -116,7 +130,7 @@ module.exports = {
             }
         });
         const numHaulerTargets = (haulerTargets.length + numResources) / 2;
-        const numWorkers = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'worker'}}}).length;
+
 
         let successRate = 1;
         if (numHaulers < numHaulerTargets && numHaulers > 0) {
