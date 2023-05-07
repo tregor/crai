@@ -38,15 +38,13 @@ const towerController = {
                 }
 
                 // Чиним здания
-                const closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
+                const damagedStructures = tower.room.find(FIND_STRUCTURES, {
                     filter: (s) =>
-                        s.hits < (s.hitsMax / 2)
-                    // && s.structureType !== STRUCTURE_WALL
-                    // && s.structureType !== STRUCTURE_RAMPART
+                        s.hits < s.hitsMax
                 });
-                if (closestDamagedStructure && energyPercentage >= 0.8) {
-                    tower.repair(closestDamagedStructure);
-
+                if (damagedStructures && energyPercentage >= 0.8) {
+                    damagedStructures.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
+                    tower.repair(damagedStructures[0]);
                 }
             }
         }
