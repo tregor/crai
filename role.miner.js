@@ -27,7 +27,8 @@ module.exports = {
             }
 
             // Looking in adjacent room
-            const adjacentRooms = Game.map.describeExits(creep.room.name);
+            // const adjacentRooms = Game.map.describeExits(creep.room.name);
+            const adjacentRooms = [];
             for (const roomDirection in adjacentRooms) {
                 const roomName = adjacentRooms[roomDirection];
                 const room = Game.rooms[roomName];
@@ -77,10 +78,21 @@ module.exports = {
         }
     },
     getSuccessRate: function (room) {
-        const workers = _.filter(Game.creeps, (creep) => creep.memory.role === this.roleName);
-        const resources = room.find(FIND_SOURCES_ACTIVE);
+        const miners = _.filter(room.find(FIND_MY_CREEPS), (miner) =>
+            miner.memory.role === this.roleName
+        );
+        const sources = room.find(FIND_SOURCES_ACTIVE, {
+            filter: (source) => {
+                const miners = _.filter(room.find(FIND_MY_CREEPS), (miner) =>
+                    miner.memory.role === this.roleName
+                );
+                const enemies = source.room.find(FIND_HOSTILE_CREEPS);
+                return ((miners.length < config.minersPerSource) && (enemies.length === 0) && (source.energy > 0));
+            }
+        });
+        if (sources.length === 0) return 1;
 
-        return (workers.length / resources.length);
+        return (miners.length / sources.length);
     },
     /** @param {number} tier **/
     getBody: function (tier) {
