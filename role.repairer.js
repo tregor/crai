@@ -1,8 +1,7 @@
 const config = require("./config");
-const {defaultSpawn} = require("./config");
 
 module.exports = {
-    roleName: 'builder',
+    roleName: 'repairer',
     memory: {
         default: true,
     },
@@ -16,24 +15,30 @@ module.exports = {
         }
 
         if (creep.memory.building) {
-            // Constructing
-            for (let priority of config.constructionSitePriority) {
-                let structsConstruct = creep.room.find(FIND_CONSTRUCTION_SITES, {
-                    filter: (site) => site.structureType === priority
-                });
-                if (structsConstruct.length > 0) {
-                    structsConstruct.sort((a, b) => b.progress - a.progress); // Sort by most progress first
-                    const topStructs = structsConstruct.slice(0, 10);
-                    const closestStruct = creep.pos.findClosestByRange(topStructs);
-                    creep.moveToAndPerform(closestStruct, 'build');
-                    return;
+            //Repair first
+            let structsRepair = creep.pos.findInRange(FIND_MY_STRUCTURES, 8, {
+                filter: (structure) => {
+                    return (
+                        structure.hits < structure.hitsMax
+                        && structure.structureType !== STRUCTURE_RAMPART
+                        && structure.structureType !== STRUCTURE_WALL
+                    );
                 }
+            });
+            if (structsRepair.length > 0) {
+                structsRepair.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
+                const topStructs = structsRepair.slice(0, 10);
+                const closestStruct = creep.pos.findClosestByRange(topStructs);
+                creep.moveToAndPerform(closestStruct, 'repair');
+                return;
             }
 
             // Repair others
-            const structsRepair = creep.room.find(FIND_STRUCTURES, {
+            structsRepair = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return (structure.hits < structure.hitsMax);
+                    return (structure.hits < structure.hitsMax)
+                        && structure.structureType !== STRUCTURE_RAMPART
+                        && structure.structureType !== STRUCTURE_WALL;
                 }
             });
             if (structsRepair.length > 0) {
@@ -70,17 +75,21 @@ module.exports = {
         }
     },
     getSuccessRate: function (room) {
-        const builders = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'builder'}}});
-        const constructionSites = room.find(FIND_CONSTRUCTION_SITES);
-        const energyAvailable = _.sum(builders, (c) => (c.getActiveBodyparts(WORK) * BUILD_POWER)) * 2560;
-        const energyNeededForConstructs = _.sum(constructionSites, (s) => CONSTRUCTION_COST[s.structureType]);
-        const energyRatio = (energyAvailable / energyNeededForConstructs) || 0;
+        const repairers = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'repairer'}}});
+        const damagedStructures = room.find(FIND_MY_STRUCTURES, {
+            filter: (structure) => {
+                return structure.hits < structure.hitsMax;
+            }
+        });
+        const energyAvailable = _.sum(repairers, (c) => (c.getActiveBodyparts(WORK) * BUILD_POWER)) * 2560;
+        const energyNeededForRepairs = _.sum(damagedStructures, (s) => ((s.hitsMax - s.hits) * REPAIR_COST));
+        const energyRatio = (energyAvailable / energyNeededForRepairs) || 0;
 
-        if (builders.length === 0) {
+        if (repairers.length === 0) {
             return 0;
         }
-        if ((constructionSites.length === 0)) {
-            return builders.length;
+        if ((damagedStructures.length === 0)) {
+            return repairers.length;
         }
 
         return Math.max(energyRatio, 0.1);
