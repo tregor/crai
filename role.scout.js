@@ -1,5 +1,5 @@
 const config = require("./config");
-const minClaimSources = 1;
+const minClaimSources = 2;
 module.exports = {
     roleName: 'scout',
     memory: {
@@ -24,7 +24,7 @@ module.exports = {
             && (controller.owner === undefined)
             && (controller.reservation === undefined)
             && (creep.getActiveBodyparts(CLAIM) > 0)
-            && (controller.room.find(FIND_SOURCES).length > minClaimSources)
+            && (controller.room.find(FIND_SOURCES).length >= minClaimSources)
         ) {
             if (!creep.memory.claimRoom) {
                 creep.memory.claimRoom = creep.room.name;
