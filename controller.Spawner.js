@@ -103,7 +103,7 @@ const spawnerController = {
                 let desiredCount = Math.ceil(Math.max(existingCount, 0.01) / successRate);
                 let energyRequired = energyReqForCreep(roleName, tier);
                 let roleTier = Math.min(Math.ceil(tier * energyAvailable / energyRequired), tier);
-                spawn.memory.debugFull[creepRolesAvailable[roleName]] = `e:${existingCount} s:${successRate} d:${desiredCount} n:${energyRequired}`;
+                spawn.memory.debugFull[roleName] = `e:${existingCount} s:${successRate} d:${desiredCount} n:${energyRequired}`;
 
                 let alreadyQueued = _.sum(spawn.memory.spawnQueue, {filter: (creep) => creep.role === roleName && creep.tier === roleTier});
                 const spawnCount = desiredCount - existingCount - alreadyQueued;

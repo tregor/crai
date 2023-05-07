@@ -6,9 +6,9 @@ const towerController = require('./controller.Towers');
 module.exports = {
     loop: function () {
         roomManager.run();
-        spawnController.run();
         creepsController.run();
         towerController.run();
+        spawnController.run();
     }
 };
 
