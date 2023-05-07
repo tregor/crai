@@ -93,11 +93,12 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
     }
 
     if (res === ERR_NOT_IN_RANGE || !this.pos.isNearTo(target)) {
-        res = this.moveTo(target, moveOpts);
+
+        res = this.moveToWithRoadUsage(target, moveOpts);
     }
     if (res === ERR_NOT_FOUND) {
         moveOpts.noPathFinding = false;
-        res = this.moveTo(target, moveOpts);
+        res = this.moveToWithRoadUsage(target, moveOpts);
     }
     if (res === ERR_NO_PATH) {
         moveOpts.noPathFinding = false;
@@ -105,10 +106,22 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
         moveOpts.ignoreCreeps = true;
         moveOpts.ignoreDestructibleStructures = true;
         moveOpts.ignoreRoads = false;
-        res = this.moveTo(target, moveOpts);
+        res = this.moveToWithRoadUsage(target, moveOpts);
     }
     // this.say(res)
     return res;
+};
+Creep.prototype.moveToWithRoadUsage = function (target, opts) {
+    // Обновляем счетчик использования дороги
+    const posKey = `${this.pos.x},${this.pos.y}`;
+    if (!this.room.memory.roadUsage[posKey]) {
+        this.room.memory.roadUsage[posKey] = 1;
+    } else {
+        this.room.memory.roadUsage[posKey]++;
+    }
+
+    // Вызываем оригинальную функцию moveTo
+    return this.moveTo(target, opts);
 };
 
 
