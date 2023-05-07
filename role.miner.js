@@ -49,8 +49,8 @@ module.exports = {
                         return ((miners.length < config.minersPerSource) && (enemies.length === 0) && (source.energy > 0));
                     }
                 });
-                console.log(room.name + sources.length)
                 if (sources.length > 0) {
+                    console.log('Miner found source in room ',room.name,sources.length)
                     creep.memory.sourceId = _.sample(sources).id;
                     return;
                 } else {
@@ -58,7 +58,7 @@ module.exports = {
                 }
             }
         } else {
-            if (source.energy > 0 || source.ticksToRegeneration < 300) { //TODO replace 300 with calculated ETA to new mines
+            if (source.energy > 0 || source.ticksToRegeneration <= 300) { //TODO replace 300 with calculated ETA to new mines
                 creep.moveToAndPerform(source, 'harvest');
                 return;
             } else {

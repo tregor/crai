@@ -17,7 +17,7 @@ module.exports = {
         4: 1200,
         5: 1800,
     },
-    minersPerSource: 2,
+    minersPerSource: 1,
     creepsPerTier:
     // [2, 3, 5, 7, 11, 13, 17, 19],
         [1, 2, 4, 6, 9, 13],

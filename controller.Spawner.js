@@ -3,7 +3,6 @@ const config = require("./config");
 
 const spawnerController = {
     run: function () {
-
         for (const spawnName in Game.spawns) {
             const spawn = Game.spawns[spawnName];
             const room = spawn.room;
@@ -25,7 +24,7 @@ const spawnerController = {
             }
 
             if (room.energyCapacityAvailable < config.energyPerTiers[tier]) {
-                console.log(`Downgrade T${tier}=>T${tier - 1}`)
+//                console.log(`Downgrade T${tier}=>T${tier - 1}`)
                 tier = tier - 1;
             }
 
