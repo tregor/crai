@@ -71,11 +71,13 @@ module.exports = {
             // Dropped resources
             let roomDropped = creep.room.find(FIND_DROPPED_RESOURCES, {
                 filter: (resource) => {
-                    return resource.resourceType === RESOURCE_ENERGY && resource.amount > (creep.store.getFreeCapacity(RESOURCE_ENERGY) * 0.3);
+                    return resource.resourceType === RESOURCE_ENERGY && resource.amount > (creep.store.getFreeCapacity(RESOURCE_ENERGY) * 0.2);
                 }
             });
             if (roomDropped.length > 0) {
-                let nearest = creep.pos.findClosestByRange(roomDropped);
+                roomDropped.sort((a, b) => a.amount - b.amount); // Sort by most progress first
+                let nearest = creep.pos.findClosestByRange(roomDropped.slice(0, 10));
+
                 creep.moveToAndPerform(nearest, 'pickup');
                 return;
             }

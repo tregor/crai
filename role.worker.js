@@ -39,8 +39,10 @@ module.exports = {
                             structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                     }
                 });
-                creep.moveToAndPerform(nearest, 'transfer', RESOURCE_ENERGY);
-                return;
+                if (nearest) {
+                    creep.moveToAndPerform(nearest, 'transfer', RESOURCE_ENERGY);
+                    return;
+                }
             }
 
             // Help builders
@@ -88,12 +90,11 @@ module.exports = {
                 let nearest = creep.pos.findClosestByRange(containers);
                 if (creep.moveToAndPerform(nearest, 'withdraw', RESOURCE_ENERGY) === OK) {
                     return;
-                } else {
-                    creep.say(creep.moveToAndPerform(nearest, 'withdraw', RESOURCE_ENERGY))
                 }
             }
             if (resources_droped.length) {
-                let nearest = creep.pos.findClosestByRange(resources_droped);
+                resources_droped.sort((a, b) => a.amount - b.amount); // Sort by most progress first
+                let nearest = creep.pos.findClosestByRange(resources_droped.slice(0, 10));
                 if (creep.moveToAndPerform(nearest, 'pickup', RESOURCE_ENERGY) === OK) {
                     return;
                 }
