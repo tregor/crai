@@ -110,7 +110,7 @@ module.exports = {
         }
     },
     getSuccessRate: function (room) {
-        const haulers = _.filter(Game.creeps, (creep) => creep.memory.role === 'hauler');
+        const haulers = _.filter(room.find(FIND_MY_CREEPS), (creep) => creep.memory.role === this.roleName);
         const resources = _.filter(room.find(FIND_DROPPED_RESOURCES), (resource) => resource.resourceType === RESOURCE_ENERGY);
         const energyDropped = _.sum(resources, (r) => (r.amount));
 
@@ -122,7 +122,7 @@ module.exports = {
         }
 
         // return ((haulers.length * (HARVEST_POWER *96)) / energyDropped) /8;
-        return ((haulers.length) / resources.length) / (room.controller.level / 8);
+        return ((haulers.length * 4) / resources.length);
     },
     /** @param {number} tier **/
     getBody: function (tier) {

@@ -13,8 +13,7 @@ module.exports = {
             const sources = creep.room.find(FIND_SOURCES_ACTIVE, {
                 filter: (source) => {
                     const miners = _.filter(Game.creeps, (miner) =>
-                        miner.id !== creep.id
-                        && miner.memory.role === this.roleName
+                        miner.memory.role === this.roleName
                         && miner.memory.sourceId === source.id
                     );
                     const enemies = source.room.find(FIND_HOSTILE_CREEPS);
@@ -41,8 +40,7 @@ module.exports = {
                 const sources = room.find(FIND_SOURCES_ACTIVE, {
                     filter: (source) => {
                         const miners = _.filter(Game.creeps, (miner) =>
-                            miner.id !== creep.id
-                            && miner.memory.role === this.roleName
+                            miner.memory.role === this.roleName
                             && miner.memory.sourceId === source.id
                         );
                         const enemies = source.room.find(FIND_HOSTILE_CREEPS);
@@ -72,11 +70,8 @@ module.exports = {
         );
         const sources = room.find(FIND_SOURCES_ACTIVE, {
             filter: (source) => {
-                const miners = _.filter(room.find(FIND_MY_CREEPS), (miner) =>
-                    miner.memory.role === this.roleName
-                );
                 const enemies = source.room.find(FIND_HOSTILE_CREEPS);
-                return ((miners.length < config.minersPerSource) && (enemies.length === 0) && (source.energy > 0));
+                return ((enemies.length === 0) && (source.energy > 0));
             }
         });
         if (sources.length === 0) return 1;

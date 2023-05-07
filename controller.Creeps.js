@@ -1,4 +1,5 @@
 const config = require('./config');
+const utils = require("./utils");
 const creepRoles = require('./roles');
 
 const controllerCreeps = {
@@ -53,6 +54,14 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
     // const color = '#' + ('00000' + (this.getFullname().split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0) & 0xFFFFFF).toString(16)).substr(-6);
     // noinspection CommaExpressionJS
     const color = str => '#' + new Array(3).fill().map((_, i) => Math.floor(((this.getFullname().split('').reduce((a, b) => (((a << 5) - a) + b.charCodeAt(0)) & 0xFF), 0) >> (i * 8)) / 2 + 128).toString(16).padStart(2, '0')).join('');
+    const nrgStore = this.store.getFreeCapacity(RESOURCE_ENERGY);
+    let nrgTarget = 0;
+    if (target.store){
+        nrgTarget = target.store.getFreeCapacity(RESOURCE_ENERGY) || 0;
+    }
+    if (target instanceof StructureController){
+        nrgTarget = target.progress;
+    }
 
     const moveOpts = {
         noPathFinding: (Game.cpu.getUsed() >= 20),
@@ -90,6 +99,14 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
         res = action.call(this, target, ...args);
     } else {
         res = this[action](target, ...args);
+    }
+
+    if (res === OK){
+        if (action === 'transfer'){
+            if (target instanceof StructureController){
+                utils.addStat(`rooms.${this.room.name}.energyDeliveredToController`, this.getActiveBodyparts(WORK));
+            }
+        }
     }
 
     if (res === ERR_NOT_IN_RANGE || !this.pos.isNearTo(target)) {

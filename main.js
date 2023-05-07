@@ -2,6 +2,7 @@ const roomManager = require('./controller.RoomManager');
 const spawnController = require('./controller.Spawner');
 const creepsController = require('./controller.Creeps');
 const towerController = require('./controller.Towers');
+const utils = require("./utils");
 
 module.exports = {
     loop: function () {
@@ -11,4 +12,3 @@ module.exports = {
         spawnController.run();
     }
 };
-

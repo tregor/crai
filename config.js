@@ -1,14 +1,12 @@
-if (!Memory.seenRooms) {
-    Memory.seenRooms = {};
-}
-if (!Memory.seenMinerals) {
-    Memory.seenMinerals = {};
-}
-
 module.exports = {
     // Глобальные настройки
     defaultSpawn: Game.spawns['Spawn1'],
     flagIdle: Game.flags['FLAG_IDLING'],
+    showStats: false,
+    useStats: true,
+    drawRoadMap: false,
+    drawHeatMap: false,
+    statsMaxTicks: 600,
     energyPerTier: 200,
     energyPerTiers: {
         1: 200,

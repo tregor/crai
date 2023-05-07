@@ -46,6 +46,11 @@ module.exports = {
                         creep.memory.claimRoom = null;
                     }
                 }
+                if (Game.gcl.level < Game.spawns.length+1){
+                    // Can't claim bcs of GCL
+                    creep.moveToAndPerform(controller, 'signController', "ZONE 51, UNDER GOV CONTROL");
+                    creep.moveToAndPerform(controller, 'reserveController')
+                }
                 return;
             } else {
                 creep.moveTo(controller, {visualizePathStyle: {stroke: '#ffffff'}});

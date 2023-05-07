@@ -1,5 +1,7 @@
 const creepRoles = require("./roles");
+const utils = require("./utils");
 const config = require("./config");
+const {addStat} = require("./utils");
 
 const spawnerController = {
     run: function () {
@@ -51,7 +53,7 @@ const spawnerController = {
                 spawn.memory.spawnQueue = [];
             }
             if (!spawn.memory.debugFull) {
-                spawn.memory.debugFull = [];
+                spawn.memory.debugFull = {};
             }
 
             // Если спавн не занят, берем первого крипа из очереди и спавним его
@@ -67,15 +69,19 @@ const spawnerController = {
             }
 
             // Display debug information using RoomVisuals
-            const cpuUsage = Game.cpu.getUsed() * 100;
-            createDebugVisual(room.name, spawn.pos.x, spawn.pos.y,
-                ` T${tier} ${Math.round(room.controller.progress / room.controller.progressTotal * 100)}%(${room.controller.progress})`,
-                ` NRG: ${energyAvailable}/${room.energyCapacityAvailable} +${energyQueued}`,
-                ` CPU: ${cpuUsage.toFixed(2)}`,
-                ` Creeps: ${myCreeps.length}`,
+            const cpuUsage = Game.cpu.getUsed();
+            const controllerEnergyPerTick = utils.getAvgStat(`rooms.${room.name}.energyDeliveredToController`);
+            const controllerRemainProgress = (room.controller.progressTotal - room.controller.progress) / controllerEnergyPerTick;
+            const controllerRemainSeconds = controllerRemainProgress * 5;
+//            console.log(controllerEnergyPerTick, room.controller.progressTotal, room.controller.progress, controllerRemainProgress)
+            utils.createDebugVisual(room.name, spawn.pos.x, spawn.pos.y,
+                                    ` T${tier} ${Math.round(room.controller.progress / room.controller.progressTotal * 100)}% (~${utils.formatETA(controllerRemainSeconds)})`,
+                                    ` NRG: ${energyAvailable}/${room.energyCapacityAvailable} +${energyQueued}`,
+                                    ` CPU: ${Math.ceil(cpuUsage/20*100)}% (${cpuUsage.toFixed(2)})`,
+                                    ` Creeps: ${myCreeps.length}`,
             );
             if (spawn.memory.debugFull) {
-                createDebugVisual(room.name, spawn.pos.x, spawn.pos.y + 1,
+                utils.createDebugVisual(room.name, spawn.pos.x, spawn.pos.y + 1,
                     JSON.stringify(spawn.memory.debugFull),
                 );
             }
@@ -102,7 +108,7 @@ const spawnerController = {
                 let desiredCount = Math.ceil(Math.max(existingCount, 0.01) / successRate);
                 let energyRequired = energyReqForCreep(roleName, tier);
                 let roleTier = Math.min(Math.ceil(tier * energyAvailable / energyRequired), tier);
-                spawn.memory.debugFull[roleName] = `e:${existingCount} s:${successRate} d:${desiredCount} n:${energyRequired}`;
+//                spawn.memory.debugFull.push(`${role.name} e:${existingCount} s:${successRate} d:${desiredCount} n:${energyRequired}`);
 
                 let alreadyQueued = _.sum(spawn.memory.spawnQueue, {filter: (creep) => creep.role === roleName && creep.tier === roleTier});
                 const spawnCount = desiredCount - existingCount - alreadyQueued;
@@ -129,9 +135,10 @@ const spawnerController = {
 
 function addToSpawnQueue(spawn, roleName, tier, count) {
     console.log(`Queing to spawn ${count}x T${tier}${roleName}`)
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < count; i++) {;
         spawn.memory.spawnQueue.push({role: roleName, tier: tier});
     }
+    utils.addStat(`rooms.${spawn.room.name}.creepsSpawned`, count)
 }
 
 function calculateRequiredCreeps(existingCount, efficiency) {
@@ -153,40 +160,6 @@ function energyReqForCreep(roleName, tier = 1) {
     return cost;
 }
 
-function createDebugVisual(roomName, x, y, ...texts) {
-    const room = Game.rooms[roomName];
-    const visual = new RoomVisual(roomName);
-    visual.getTextWidth = function (text, opts) {
-        let fontSize = opts.font || 0.5;
-        return text.length * fontSize * 0.4; // approximate width
-    };
-    const fontSize = 0.2;
-    const padding = 0.2;
-    let maxWidth = 0;
-    let totalHeight = texts.length * fontSize;
-
-    // Calculate the maximum width of all the texts
-    for (let text of texts) {
-        let textWidth = visual.getTextWidth(text, {font: fontSize});
-        maxWidth = Math.max(maxWidth, textWidth);
-    }
-
-    // Add padding to the width and height
-    let rectWidth = maxWidth + (2 * padding);
-    let rectHeight = totalHeight + (2 * padding);
-
-    // Draw the rectangle and the text
-    new RoomVisual(roomName)
-        .rect(x - (rectWidth / 2), y - (rectHeight / 2), rectWidth, rectHeight, {fill: 'black', opacity: 0.7});
-
-    for (let i = 0; i < texts.length; i++) {
-        let text = texts[i];
-        let textWidth = visual.getTextWidth(text, {font: fontSize});
-        let textX = x;
-        let textY = y - (totalHeight / texts.length) + (i * fontSize);
-        new RoomVisual(roomName).text(text, textX, textY, {font: fontSize});
-    }
-}
 
 function spawnRole(spawn, role, tier) {
     if (spawn.spawning) {
