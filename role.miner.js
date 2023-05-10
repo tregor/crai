@@ -56,7 +56,7 @@ module.exports = {
                 }
             }
         } else {
-            if (source.energy > 0 || source.ticksToRegeneration <= 300) { //TODO replace 300 with calculated ETA to new mines
+            if (source.energy > 0) { //TODO replace 300 with calculated ETA to new mines
                 creep.moveToAndPerform(source, 'harvest');
             } else {
                 if (source.ticksToRegeneration > 300){
