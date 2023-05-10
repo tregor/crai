@@ -30,7 +30,7 @@ module.exports = {
 
             // Help haulers
             const haulers = creep.room.find(FIND_MY_CREEPS, {filter: (creep) => creep.memory.role === 'hauler'});
-            if (roleHauler.getSuccessRate(creep.room) < 0.05 || haulers.length === 0) {
+            if (roleHauler.getSuccessRate(creep.room) < 0.2) {
                 const nearest = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: (structure) => {
                         return (structure.structureType === STRUCTURE_EXTENSION ||
@@ -46,7 +46,7 @@ module.exports = {
             }
 
             // Help builders
-            if (roleBuilder.getSuccessRate(creep.room) < 0.05) {
+            if (roleBuilder.getSuccessRate(creep.room) < 0.2) {
                 for (let priority of config.constructionSitePriority) {
                     let constructions = creep.room.find(FIND_CONSTRUCTION_SITES, {
                         filter: (site) => site.structureType === priority
