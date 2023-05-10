@@ -39,7 +39,7 @@ function wrapLoop(fn) {
 //        RawMemory._parsed = Memory;
     };
 }
-export const wrapWithMemoryHack = (fn: () => void) => {
+function wrapLoop(fn) {
     const memory = Memory;
 
     return () => {
