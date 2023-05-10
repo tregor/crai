@@ -2,7 +2,7 @@ const config = require("./config");
 module.exports = {
     roleName: 'hauler',
     memory: {
-        delivering: true,
+        delivering: true, 
     },
     /** @param {Creep} creep **/
     run: function (creep) {
