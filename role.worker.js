@@ -161,7 +161,7 @@ module.exports = {
             successRate = successRate * (numWorkers / (numResources + numConstructionSites));
         }
 
-        return successRate;
+        return successRate * 4;
 
     },
     getBody: function (tier) {
