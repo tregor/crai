@@ -15,17 +15,17 @@ const spawnerController = {
             let energyQueued = _.sum(spawn.memory.spawnQueue, (creep) => energyReqForCreep(creep.role, creep.tier));
 
             let roleCounts = {};
-            for (const roleName in creepRoles){
-                if (!roleCounts[roleName]) {
-                    roleCounts[roleName] = 0;
-                }
-            }
             for (const name in myCreeps) {
                 const creep = myCreeps[name];
                 if (!roleCounts[creep.memory.role]) {
                     roleCounts[creep.memory.role] = 1;
                 } else {
                     roleCounts[creep.memory.role]++;
+                }
+            }
+            for (const roleName in creepRoles){
+                if (!roleCounts[roleName]) {
+                    roleCounts[roleName] = 0;
                 }
             }
             spawn.memory.debugFull = roleCounts;
