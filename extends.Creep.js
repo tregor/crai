@@ -66,7 +66,6 @@ if (typeof Creep.prototype.idleFor !== 'function'){
     });
     Creep.prototype.idleFor = function(ticks = 0) {
         if (ticks > 0) {
-            console.log("Suspend", this, "for", ticks);
             this.idle = Game.time + ticks;
         } else {
             this.idle = undefined;
