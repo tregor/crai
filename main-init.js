@@ -1,6 +1,7 @@
 require('extends.ConstructionSite');
 require('extends.Creep');
 require('extends.Room');
+require('extends.RoomObject');
 require('extends.RoomPosition');
 require('extends.Source');
 require('extends.Structure');
