@@ -28,6 +28,8 @@ const spawnerController = {
                     roleCounts[creep.memory.role]++;
                 }
             }
+            spawn.memory.debugFull = roleCounts;
+
 
             if (room.energyCapacityAvailable < config.energyPerTiers[tier]) {
 //                console.log(`Downgrade T${tier}=>T${tier - 1}`)
@@ -84,16 +86,16 @@ const spawnerController = {
                                     ` CPU: ${Math.ceil(cpuUsage/20*100)}% (${cpuUsage.toFixed(2)})`,
                                     ` BOTs: ${myCreeps.length}`,
             );
-//            if (spawn.memory.debugFull) {
-//                utils.createDebugVisual(room.name, spawn.pos.x, spawn.pos.y + 1,
-//                    JSON.stringify(spawn.memory.debugFull),
-//                );
-//            }
+            if (spawn.memory.debugFull) {
+                utils.createDebugVisual(room.name, spawn.pos.x, spawn.pos.y + 1,
+                    JSON.stringify(spawn.memory.debugFull),
+                );
+            }
 
             //""" Главная логика спавнов и добавления в очереди
 
             // Добавляем рабочего на 1 место очереди спавна если у нас нет рабочих
-            if (roleCounts['worker'] < 1 && energyAvailable >= 200 && energyQueued === 0) {
+            if (roleCounts['worker'] === 0 && energyAvailable >= 200 && energyQueued === 0) {
                 spawn.memory.spawnQueue.unshift({role: 'worker', tier: 1});
                 continue;
             }
