@@ -26,9 +26,14 @@ const RoomManager = {
                     rooms: {},
                 };
             }
-            if (!Memory.room.roadUsage) {
-                Memory.room.roadUsage = {};
+            if (!Memory.room[roomName]) {
+                Memory.room[roomName] = {};
             }
+            if (!Memory.room[roomName].roadUsage) {
+                Memory.room[roomName].roadUsage = {};
+            }
+
+
             if (Object.keys(Memory.stats.ticks).length > config.statsMaxTicks) {
                 const minTick = Math.min(...Object.keys(Memory.stats.ticks));
                 delete Memory.stats.ticks[minTick];
