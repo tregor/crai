@@ -187,65 +187,67 @@ function drawRoadUsage(room) {
     }
 }
 
-
 function drawDistanceTransform(room) {
     const terrain = new Room.Terrain(room.name);
     const width = 50;
     const height = 50;
     const matrix = new Array(width);
+    const visited = new Array(width);
+
     for (let x = 0; x < width; x++) {
-        matrix[x] = new Array(height);
-        for (let y = 0; y < height; y++) {
-            const terrainType = terrain.get(x, y);
-            matrix[x][y] = terrainType === TERRAIN_MASK_WALL ? 0 : Infinity;
-        }
+        matrix[x] = new Array(height).fill(Infinity);
+        visited[x] = new Array(height).fill(false);
     }
 
-    // Распространяем волну от стен до свободных клеток
-    let wave = 1;
-    let changed = true;
-    while (changed) {
-        changed = false;
-        for (let x = 0; x < width; x++) {
-            for (let y = 0; y < height; y++) {
-                if (matrix[x][y] === wave) {
-                    for (let dx = -1; dx <= 1; dx++) {
-                        for (let dy = -1; dy <= 1; dy++) {
-                            const nx = x + dx;
-                            const ny = y + dy;
-                            if (nx >= 0 && nx < width && ny >= 0 && ny < height && matrix[nx][ny] === Infinity) {
-                                matrix[nx][ny] = wave + 1;
-                                changed = true;
-                            }
-                        }
-                    }
-                }
+    const queue = [];
+
+    for (let x = 0; x < width; x++) {
+        for (let y = 0; y < height; y++) {
+            if (terrain.get(x, y) === TERRAIN_MASK_WALL) {
+                matrix[x][y] = 0;
+                visited[x][y] = true;
+                queue.push({ x, y });
             }
         }
-        wave++;
     }
 
-    // Нормализуем значения Distance-Transform от 0 до 1
+    const directions = [
+        { dx: 1, dy: 0 },
+        { dx: -1, dy: 0 },
+        { dx: 0, dy: 1 },
+        { dx: 0, dy: -1 },
+        ];
+
+    while (queue.length > 0) {
+        const { x, y } = queue.shift();
+
+        for (const { dx, dy } of directions) {
+            const nx = x + dx;
+            const ny = y + dy;
+
+            if (nx >= 0 && nx < width && ny >= 0 && ny < height && !visited[nx][ny]) {
+                matrix[nx][ny] = matrix[x][y] + 1;
+                visited[nx][ny] = true;
+                queue.push({ x: nx, y: ny });
+            }
+        }
+    }
+
     const maxDistance = Math.max(...matrix.reduce((acc, row) => acc.concat(row), []));
 
-// for (let x = 0; x < width; x++) {
-// for (let y = 0; y < height; y++) {
-// matrix[x][y] /= maxDistance;
-// }
-// }
-
-    // Отрисовываем Distance-Transform на карте
     for (let x = 0; x < width; x++) {
         for (let y = 0; y < height; y++) {
             const pos = new RoomPosition(x, y, room.name);
             const distance = matrix[x][y];
+            const blueValue = Math.round((distance / maxDistance) * 255);
             room.visual.rect(pos.x - 0.5, pos.y - 0.5, 1, 1, {
-                fill: `rgba(0, 0, ${(distance * 255)}, 1)`,
+                fill: `rgba(0, 0, ${blueValue}, 1)`,
                 opacity: 0.5,
             });
         }
     }
 }
+
 
 /**
  * Simple benchmark test with sanity check
