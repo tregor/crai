@@ -116,36 +116,15 @@ function createDebugVisual(roomName, x, y, ...texts) {
  * to a 2d matrix
  */
 function loadBuildplan(room, plan) {
-    const buildlist = {};
-    const width = 50;
-    const height = 50;
-    const matrix = Array.from({length: height}, () =>
-        Array.from({length: width}, () => null)
-    );
-
-    for (const [structureType, {pos}] of Object.entries(plan)) {
-        for (const {x, y} of pos) {
-            const structure = MSG_STRUCT[structureType];
-            if (!matrix[y][x] || matrix[y][x] !== structure) {
-                if (!buildlist[structure]) {
-                    buildlist[structure] = [];
-                }
-                buildlist[structure].push(new RoomPosition(x, y, room.name));
-                matrix[y][x] = structure;
-            }
-        }
-    }
-
-    for (const [structType, positions] of Object.entries(buildlist)) {
-        for (const pos of positions) {
+    for (const [structType, positions] of Object.entries(plan.buildings)) {
+        for (const { x, y } of positions) {
+            const pos = new RoomPosition(x, y, room.name)
             const objectsAtPos = pos.lookFor(LOOK_CONSTRUCTION_SITES).concat(pos.lookFor(LOOK_STRUCTURES));
             if (objectsAtPos.length === 0) {
-                room.createConstructionSite(pos.x, pos.y, global[structType]);
+                room.createConstructionSite(pos.x, pos.y, global[MSG_STRUCT[structType]]);
             }
         }
     }
-
-    return matrix;
 }
 
 function drawRoadUsage(room) {
