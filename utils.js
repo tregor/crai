@@ -239,6 +239,9 @@ function drawDistanceTransform(room) {
         for (let y = 0; y < height; y++) {
             const pos = new RoomPosition(x, y, room.name);
             const distance = matrix[x][y];
+            if (distance < 1){
+                continue;
+            }
             const normalizedDistance = distance / maxDistance;
             const interpolatedDistance = interpolate(normalizedDistance, 0.2, 1);
             const blueValue = Math.round(interpolatedDistance * 255);
@@ -246,7 +249,7 @@ function drawDistanceTransform(room) {
                 fill: `rgba(0, 0, ${blueValue}, 1)`,
                 opacity: 0.5,
             });
-            room.visual.text(distance.toFixed(1), pos.x, pos.y, {
+            room.visual.text(distance, pos.x, pos.y, {
                 font: '0.5 Arial',
                 align: 'center',
                 color: 'white',
