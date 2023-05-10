@@ -10,18 +10,11 @@ require('extends.Creep');
 
 module.exports = {
     loop:  wrapLoop(function () {
-        while (Game.cpu.tickLimit * 0.8 > Game.cpu.getUsed()) {
-            if (!this.run()) {
-                break;
-            }
-        }
-    }),
-    run: function(){
         roomManager.run();
         creepsController.run();
         towerController.run();
         spawnController.run();
-    }
+    }),
 };
 
 function wrapLoop(fn) {
