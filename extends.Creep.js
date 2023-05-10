@@ -169,7 +169,7 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
     }
 
     if (typeof res === "number" && res < 0) {
-        console.log(`${this.name} ${method} failed: ${MSG_ERR[res]} at ${this.pos}`);
+        console.log(`${this.name} ${action} failed: ${MSG_ERR[res]} at ${this.pos}`);
     }
     // this.say(res)
     return res;
