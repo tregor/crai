@@ -249,11 +249,11 @@ function drawDistanceTransform(room) {
                 fill: `rgba(0, 0, ${blueValue}, 1)`,
                 opacity: 0.5,
             });
-            room.visual.text(distance, pos.x, pos.y, {
-                fontSize: 0.5 * distance,
-                align: 'center',
-                color: 'white',
-            });
+//            room.visual.text(distance, pos.x, pos.y, {
+//                fontSize: 0.5 * distance,
+//                align: 'center',
+//                color: 'white',
+//            });
         }
     }
 }
