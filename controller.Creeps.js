@@ -22,7 +22,7 @@ const controllerCreeps = {
             if( creep.spawning) continue;
             if (creep.ticksToLive === 1) {
                 creep.say('☠️ dying');
-                 console.log(`${creep} ${creep.pos} died naturally.`);
+//                 console.log(`${creep} ${creep.pos} died naturally.`);
                 for(const resourceType in creep.carry) {
                     creep.drop(resourceType);
                 }

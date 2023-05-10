@@ -45,7 +45,7 @@ function wrapLoop(fn) {
         // + maintain full functionality including Memory watcher and console
 
         // this implementation uses the official way of saving Memory
-//        RawMemory.set(JSON.stringify(Memory));
-        RawMemory._parsed = Memory;
+        RawMemory.set(JSON.stringify(Memory));
+//        RawMemory._parsed = Memory;
     };
 }
