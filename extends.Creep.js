@@ -41,7 +41,12 @@ const creepRoles = require('./roles');
     };
 });
 
-if (!Creep.prototype.idle){
+/**
+ * Set the unit to idle-mode for ticks given
+ *
+ * @type {int}
+ */
+if (typeof Creep.prototype.idleFor !== 'function'){
     Object.defineProperty(Creep.prototype, "idle", {
         get: function() {
             if (this.memory.idle === undefined) return 0;
@@ -51,7 +56,7 @@ if (!Creep.prototype.idle){
             }
             return this.memory.idle;
             },
-    set: function(val) {
+       set: function(val) {
             if (!val && this.memory.idle) {
                 delete this.memory.idle;
             } else {
@@ -59,21 +64,16 @@ if (!Creep.prototype.idle){
             }
         }
     });
+    Creep.prototype.idleFor = function(ticks = 0) {
+        if (ticks > 0) {
+            console.log("Suspend", this, "for", ticks);
+            this.idle = Game.time + ticks;
+        } else {
+            this.idle = undefined;
+        }
+    };
 }
 
-/**
- * Set the unit to idle-mode for ticks given
- *
- * @type {int}
- */
-Creep.prototype.idleFor = function(ticks = 0) {
-    if (ticks > 0) {
-        console.log("Suspend", this, "for", ticks);
-        this.idle = Game.time + ticks;
-    } else {
-        this.idle = undefined;
-    }
-};
 Creep.prototype.getFullname = function () {
     if (!this.memory.tier || !this.memory.role) {
         return this.name;
