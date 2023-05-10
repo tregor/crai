@@ -14,6 +14,8 @@ if (!Memory.roadUsage) {
 function setStat(path, value) {
     _.set(Memory.stats.ticks[Game.time], path, value);
 }
+
+
 function addStat(path, value) {
     _.set(Memory.stats.ticks[Game.time], path, getStat(path) + value);
 }
@@ -28,26 +30,28 @@ function getStat(path, tick = null) {
 function getSumStat(path) {
     const currentTick = Game.time;
     const startTick = Math.max(currentTick - config.statsMaxTicks, Math.min(...Object.keys(Memory.stats.ticks)));
-    const ticks = Array.from({ length: currentTick - startTick + 1 }, (_, i) => startTick + i);
+    const ticks = Array.from({length: currentTick - startTick + 1}, (_, i) => startTick + i);
     const sumStat = ticks.reduce((sum, tick) => {
         return sum + getStat(path, tick);
-        }, 0);
+    }, 0);
 
     return sumStat;
 }
+
+
 function getAvgStat(path) {
     const currentTick = Game.time;
     const startTick = Math.max(currentTick - config.statsMaxTicks, Math.min(...Object.keys(Memory.stats.ticks)));
-    const ticks = Array.from({ length: currentTick - startTick + 1 }, (_, i) => startTick + i);
+    const ticks = Array.from({length: currentTick - startTick + 1}, (_, i) => startTick + i);
     const sumStat = ticks.reduce((sum, tick) => {
         return sum + getStat(path, tick);
-        }, 0);
+    }, 0);
 
     return (sumStat / config.statsMaxTicks).toFixed(2);
 }
 
 function formatETA(seconds) {
-    if (seconds === Infinity){
+    if (seconds === Infinity) {
         return 'never';
     }
     const minutes = Math.floor(seconds / 60);
@@ -77,7 +81,7 @@ function createDebugVisual(roomName, x, y, ...texts) {
         opt = {...opt, ...texts[texts.length - 1]};
         texts.pop();
     }
-    
+
     visual.getTextWidth = function (text, opts) {
         let fontSize = opts.font || 0.5;
         return text.length * fontSize * 0.4; // approximate width
@@ -97,7 +101,7 @@ function createDebugVisual(roomName, x, y, ...texts) {
     // Calculate the coordinates of the top left corner of the rectangle
     let rectTopLeftX = x + (opt.align === "center" ? rectWidth / -2 : 0);
     let rectTopLeftY = y + (opt.align === "center" ? rectHeight / -2 : 0);
-    if (opt.align === "left"){
+    if (opt.align === "left") {
         rectTopLeftX = Math.max(rectTopLeftX, 0)
         rectTopLeftY = Math.max(rectTopLeftY, 0)
         rectTopLeftX -= 0.5;
@@ -105,48 +109,62 @@ function createDebugVisual(roomName, x, y, ...texts) {
     }
     new RoomVisual(roomName)
         .rect(rectTopLeftX, rectTopLeftY, rectWidth, rectHeight, {fill: 'black', opacity: 0.7});
-    
+
 
     for (let i = 0; i < texts.length; i++) {
         let text = texts[i];
         let textWidth = visual.getTextWidth(text, opt);
         let textX = rectTopLeftX + padding + (opt.align === "center" ? textWidth / 2 : 0);
-        let textY = rectTopLeftY + padding + (opt.align === "center" ? totalHeight / texts.length / 2 : 0) + (i * opt.font) + (opt.font/2);
+        let textY = rectTopLeftY + padding + (opt.align === "center" ? totalHeight / texts.length / 2 : 0) + (i * opt.font) + (opt.font / 2);
         new RoomVisual(roomName).text(text, textX, textY, opt);
     }
 }
 
 /**
-* Convert a plan from https://screeps.admon.dev/building-planner
-* to a 2d matrix
-*/
-function loadBuildplan(plan){
-    const xCoordinates = Object.values(plan)
-  .flatMap((x) => x.pos)
-  .map(({ x }) => x);
-    const minX = Math.min(...xCoordinates);
-    const maxX = Math.max(...xCoordinates);
-    const width = maxX - minX + 1;
+ * Convert a plan from https://screeps.admon.dev/building-planner
+ * to a 2d matrix
+ */
+function loadBuildplan(plan) {
+    const buildlist = {};
+    const width = 50;
+    const height = 50;
 
-    const yCoordinates = Object.values(plan)
-  .flatMap(({ pos }) => pos)
-  .map(({ y }) => y);
-    const minY = Math.min(...yCoordinates);
-    const maxY = Math.max(...yCoordinates);
-    const height = maxY - minY + 1;
+    const matrix = Array.from({length: height}, () =>
+        Array.from({length: width}, () => null)
+    );
 
-    console.log({ width, height });
 
-    const matrix = Array.from({ length: height }, () =>
-  Array.from({ length: width }, () => null)
-  );
-
-    for (const [structureType, { pos }] of Object.entries(plan)) {
-        for (const { x, y } of pos) {
-            // @ts-ignore
-            matrix[y - minY][x - minX] = `STRUCTURE_${structureType.toUpperCase()}`;
+    for (const [structureType, {pos}] of Object.entries(plan)) {
+        for (const {x, y} of pos) {
+            const structure = `STRUCTURE_${structureType.toUpperCase()}`;
+            if (!matrix[y][x] || matrix[y][x] !== structure) {
+                if (!buildlist[structure]) {
+                    buildlist[structure] = [];
+                }
+                buildlist[structure].push(new RoomPosition(x, y, room.name));
+                matrix[y][x] = structure;
+            }
         }
     }
+
+    for (const [structureType, positions] of Object.entries(buildlist)) {
+        const structures = room.find(FIND_MY_STRUCTURES, {
+            filter: {structureType}
+        });
+        const numStructures = structures.length;
+        const numPositions = positions.length;
+        const numConstructionSites = room.find(FIND_MY_CONSTRUCTION_SITES, {
+            filter: {structureType}
+        }).length;
+        const numNeeded = numPositions - numStructures - numConstructionSites;
+        if (numNeeded > 0) {
+            const positionsToBuild = positions.slice(numStructures, numStructures + numNeeded);
+            for (const pos of positionsToBuild) {
+                room.createConstructionSite(pos, structureType);
+            }
+        }
+    }
+
 
     return matrix;
 }
@@ -155,7 +173,7 @@ function drawRoadUsage(room) {
     const countAccuracy = 148
     const countDetails = 64
     const maxUsage = Math.max(...Object.values(room.memory.roadUsage));
-    if (!config.drawRoadMap && !config.drawHeatMap){
+    if (!config.drawRoadMap && !config.drawHeatMap) {
         return;
     }
 
@@ -167,21 +185,21 @@ function drawRoadUsage(room) {
         // Вычисляем usageRate от 1 до 100
         const usageRate = Math.ceil((usage / maxUsage) * countAccuracy);
 
-        if (config.drawHeatMap){
+        if (config.drawHeatMap) {
             // Вычисляем цвет в зависимости от usageRate
             const color = `rgb(${255 * ((usage / maxUsage) * countDetails)}, ${255 - (255 * ((usage / maxUsage) * countDetails))}, 0)`;
 
             // Отрисовываем прозрачный квадратик на позиции
-            room.visual.rect(pos.x-0.5, pos.y-0.5, 1,1, {
+            room.visual.rect(pos.x - 0.5, pos.y - 0.5, 1, 1, {
                 fill: color,
                 opacity: 0.2,
             });
         }
-        if (config.drawRoadMap){
-            if (usageRate <= 1){
+        if (config.drawRoadMap) {
+            if (usageRate <= 1) {
                 continue;
             }
-            room.visual.text(usageRate-1, pos, {
+            room.visual.text(usageRate - 1, pos, {
                 font: 0.5,
                 align: "center",
                 opacity: 0.8,
@@ -189,6 +207,8 @@ function drawRoadUsage(room) {
         }
     }
 }
+
+
 function drawDistanceTransform(room) {
     const terrain = new Room.Terrain(room.name);
     const width = 50;
@@ -229,18 +249,18 @@ function drawDistanceTransform(room) {
     // Нормализуем значения Distance-Transform от 0 до 1
     const maxDistance = Math.max(...matrix.reduce((acc, row) => acc.concat(row), []));
 
-//    for (let x = 0; x < width; x++) {
-//        for (let y = 0; y < height; y++) {
-//            matrix[x][y] /= maxDistance;
-//        }
-//    }
+// for (let x = 0; x < width; x++) {
+// for (let y = 0; y < height; y++) {
+// matrix[x][y] /= maxDistance;
+// }
+// }
 
     // Отрисовываем Distance-Transform на карте
     for (let x = 0; x < width; x++) {
         for (let y = 0; y < height; y++) {
             const pos = new RoomPosition(x, y, room.name);
             const distance = matrix[x][y];
-            room.visual.rect(pos.x-0.5, pos.y-0.5, 1, 1, {
+            room.visual.rect(pos.x - 0.5, pos.y - 0.5, 1, 1, {
                 fill: `rgba(0, 0, ${(distance * 255)}, 1)`,
                 opacity: 0.5,
             });
