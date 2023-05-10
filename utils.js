@@ -125,7 +125,8 @@ function loadBuildplan(room, plan) {
 
     for (const [structureType, {pos}] of Object.entries(plan)) {
         for (const {x, y} of pos) {
-            const structure = `STRUCTURE_${structureType.toUpperCase()}`;
+//            const structure = `STRUCTURE_${structureType.toUpperCase()}`;
+            const structure = MSG_STRUCT[structureType];
             if (!matrix[y][x] || matrix[y][x] !== structure) {
                 if (!buildlist[structure]) {
                     buildlist[structure] = [];
