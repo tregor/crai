@@ -6,9 +6,6 @@ if (!Memory.seenRooms) {
 if (!Memory.seenMinerals) {
     Memory.seenMinerals = {};
 }
-if (!Memory.roadUsage) {
-    Memory.roadUsage = {};
-}
 
 
 function setStat(path, value) {
@@ -125,6 +122,7 @@ function createDebugVisual(roomName, x, y, ...texts) {
  * to a 2d matrix
  */
 function loadBuildplan(plan) {
+    console.log(JSON.stringify(plan))
     const buildlist = {};
     const width = 50;
     const height = 50;
