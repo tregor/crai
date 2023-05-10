@@ -11,8 +11,6 @@ if (!Memory.stats.ticks[Game.time]) {
     };
 }
 
-
-
 if (!Memory.stats.seenRooms) {
     Memory.stats.seenRooms = {};
 }

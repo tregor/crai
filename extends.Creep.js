@@ -211,6 +211,9 @@ if (!Creep.prototype._moveTo) {
     Creep.prototype.moveTo = function(...myArgumentsArray) {
 
         const posKey = `${this.pos.x},${this.pos.y}`;
+        if (!this.room.memory) {
+            this.room.memory = {};
+        }
         if (!this.room.memory.roadUsage[posKey]) {
             this.room.memory.roadUsage[posKey] = 1;
         } else {
