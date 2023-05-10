@@ -135,6 +135,7 @@ function loadBuildplan(room, plan) {
             }
         }
     }
+    console.log(JSON.stringify(buildlist))
 
     for (const [structureType, positions] of Object.entries(buildlist)) {
         const structures = room.find(FIND_MY_STRUCTURES, {
