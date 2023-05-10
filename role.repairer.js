@@ -33,12 +33,21 @@ module.exports = {
                 return;
             }
 
+
+            // Чиним крипов
+            const brokenCreep = creep.pos.findClosestByRange(FIND_MY_CREEPS, 16, {
+                filter: (brokenCreep) => brokenCreep.ticksToLive < 1500 * 0.1 //1500 max ttl
+                    && brokenCreep.memory.tier >= 4
+            });
+            if (brokenCreep) {
+                let res = creep.moveToAndPerform(brokenCreep, 'repair');
+//                console.log(res)
+            }
+
             // Repair others
             structsRepair = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return (structure.hits < structure.hitsMax)
-                        && structure.structureType !== STRUCTURE_RAMPART
-                        && structure.structureType !== STRUCTURE_WALL;
+                    return (structure.hits < structure.hitsMax);
                 }
             });
             if (structsRepair.length > 0) {
@@ -49,41 +58,47 @@ module.exports = {
                 return;
             }
         } else {
-            const resources_droped = creep.room.find(FIND_DROPPED_RESOURCES, {
-                filter: (resource) => {
-                    return resource.resourceType === RESOURCE_ENERGY && resource.amount >= creep.store.getFreeCapacity(RESOURCE_ENERGY);
-                }
-            });
+            // Если крип не несет ресурс
             const containers = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return (structure.structureType === STRUCTURE_CONTAINER && structure.store[RESOURCE_ENERGY] >= creep.store.getFreeCapacity(RESOURCE_ENERGY));
+                    return (structure.structureType === STRUCTURE_CONTAINER && structure.store[RESOURCE_ENERGY] > 0);
+                }
+            });
+            const resources_droped = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 8, {
+                filter: (resource) => {
+                    return resource.resourceType === RESOURCE_ENERGY && resource.amount > 0;
                 }
             });
 
             if (containers.length) {
                 let nearest = creep.pos.findClosestByRange(containers);
-                creep.moveToAndPerform(nearest, 'withdraw', RESOURCE_ENERGY);
-                return;
+                if (creep.moveToAndPerform(nearest, 'withdraw', RESOURCE_ENERGY) === OK) {
+                    return;
+                }
             }
             if (resources_droped.length) {
-                let nearest = creep.pos.findClosestByRange(resources_droped);
-                creep.moveToAndPerform(nearest, 'pickup');
-                return;
+                resources_droped.sort((a, b) => a.amount - b.amount); // Sort by most progress first
+                let nearest = creep.pos.findClosestByRange(resources_droped.slice(0, 10));
+                if (creep.moveToAndPerform(nearest, 'pickup', RESOURCE_ENERGY) === OK) {
+                    return;
+                }
             }
 
+            // Если ресурсов на карте нет, идем на спавн
             creep.moveTo(config.flagIdle)
         }
     },
     getSuccessRate: function (room) {
-        const repairers = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'repairer'}}});
+        const repairers = room.find(FIND_MY_CREEPS, {filter: {memory: {role: this.roleName}}});
         const damagedStructures = room.find(FIND_MY_STRUCTURES, {
             filter: (structure) => {
                 return structure.hits < structure.hitsMax;
             }
         });
-        const energyAvailable = _.sum(repairers, (c) => (c.getActiveBodyparts(WORK) * BUILD_POWER)) * 2560;
-        const energyNeededForRepairs = _.sum(damagedStructures, (s) => ((s.hitsMax - s.hits) * REPAIR_COST));
-        const energyRatio = (energyAvailable / energyNeededForRepairs) || 0;
+        const energyAvailable = _.sum(repairers, (c) => (c.getActiveBodyparts(WORK) * BUILD_POWER));
+        const energyNeededForRepairs = _.sum(damagedStructures, (s) => ((s.hitsMax - s.hits)));
+        const energyRatio = (energyAvailable / (energyNeededForRepairs + 1)) || 0;
+//        console.log(JSON.stringify(repairers.length), energyAvailable, energyNeededForRepairs, energyRatio)
 
         if (repairers.length === 0) {
             return 0;
@@ -94,19 +109,16 @@ module.exports = {
 
         return Math.max(energyRatio, 0.1);
     },
-
-
-    /** @param {number} tier **/
     getBody: function (tier) {
-        const energy = config.energyPerTiers[tier];
-        let workParts = Math.floor((energy - 200) / 150); // определяем количество work частей
-        workParts = Math.min(workParts, Math.floor((energy - 200) / 100)); // ограничиваем по количеству carry частей
-        workParts = Math.max(workParts, 1); // минимальное количество work частей - 1
-        const carryParts = Math.max(Math.ceil((energy - 200 - workParts * 100) / 50), 1); // определяем количество carry частей с учетом минимального набора
-        const moveParts = Math.ceil((workParts + carryParts) * 0.5); // определяем количество move частей
-        const body = [];
+        let body = [];
+        let energyRemain = config.energyPerTiers[tier];
 
-        // добавляем части тела в соответствующем порядке
+        // Рассчитываем количество частей тела для каждого типа
+        let workParts = Math.floor(energyRemain / (BODYPART_COST[WORK] + BODYPART_COST[CARRY] + BODYPART_COST[MOVE]));
+        let carryParts = workParts;
+        let moveParts = workParts;
+
+        // Добавляем части тела в массив body
         for (let i = 0; i < workParts; i++) {
             body.push(WORK);
         }

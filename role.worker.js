@@ -17,7 +17,7 @@ module.exports = {
         }
 
         if (creep.memory.transporting) {
-            // Charge controller untill max LVL
+            // Charge controller untill LVL 2
             if (creep.room.controller.level < 2) {
                 creep.moveToAndPerform(creep.room.controller, 'transfer', RESOURCE_ENERGY);
                 return;
@@ -30,7 +30,7 @@ module.exports = {
 
             // Help haulers
             const haulers = creep.room.find(FIND_MY_CREEPS, {filter: (creep) => creep.memory.role === 'Hauler'});
-            if (roleHauler.getSuccessRate(creep.room) < 0.1 || haulers.length === 0) {
+            if (roleHauler.getSuccessRate(creep.room) < 0.05 || haulers.length === 0) {
                 const nearest = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: (structure) => {
                         return (structure.structureType === STRUCTURE_EXTENSION ||
@@ -46,7 +46,7 @@ module.exports = {
             }
 
             // Help builders
-            if (roleBuilder.getSuccessRate(creep.room) < 0.1) {
+            if (roleBuilder.getSuccessRate(creep.room) < 0.05) {
                 for (let priority of config.constructionSitePriority) {
                     let constructions = creep.room.find(FIND_CONSTRUCTION_SITES, {
                         filter: (site) => site.structureType === priority
@@ -60,6 +60,19 @@ module.exports = {
                 }
             }
 
+            // Charge towers
+            const towers = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (structure.structureType === STRUCTURE_TOWER) &&
+                            structure.store.getFreeCapacity(RESOURCE_ENERGY) > creep.store.getCapacity(RESOURCE_ENERGY);
+                }
+            });
+            if (towers) {
+                creep.say("Tower");
+                creep.moveToAndPerform(towers, 'transfer', RESOURCE_ENERGY);
+                return;
+            }
+
             // Charge controller untill max LVL
             if (creep.room.controller.level < 8) {
                 creep.moveToAndPerform(creep.room.controller, 'transfer', RESOURCE_ENERGY);
@@ -71,8 +84,10 @@ module.exports = {
             // Если крип не несет ресурс
             const sources = creep.room.find(FIND_SOURCES_ACTIVE, {
                 filter: (source) => {
-                    const enemies = source.pos.findInRange(FIND_HOSTILE_CREEPS, 4);
-                    return enemies.length === 0 && source.energy > 0;
+                    const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
+                        filter: (miner) => {miner.id !== creep.id}
+                    });
+                    return miners.length <= config.minersPerSource && source.energy > 0;
                 }
             });
             const containers = creep.room.find(FIND_STRUCTURES, {

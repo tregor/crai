@@ -69,27 +69,40 @@ const RoomManager = {
 
 
             // 4. Автоматическая стройка дорог по рейтингу
-            const roadThreshold = 10000
-            drawRoadUsage(room);
+
+            if (config.drawDistMap){
+                utils.drawDistanceTransform(room)
+            }
+            if (config.drawRoadMap || config.drawHeatMap){
+                utils.drawRoadUsage(room)
+            }
             for (const posKey in room.memory.roadUsage) {
-                if (room.memory.roadUsage[posKey] >= roadThreshold) {
+                if (room.memory.roadUsage[posKey] >= config.roadThreshold) {
                     const [x, y] = posKey.split(",");
                     const pos = new RoomPosition(parseInt(x), parseInt(y), roomName);
 
                     const structures = pos.lookFor(LOOK_STRUCTURES);
                     const hasRoad = structures.some((structure) => structure.structureType === STRUCTURE_ROAD);
+                    const hasSome = structures.some((structure) => structure.my);
 
-                    if (!hasRoad) {
+                    if (!hasRoad && !hasSome) {
                         room.createConstructionSite(pos, STRUCTURE_ROAD);
+                        Game.notify(`New road was built at ${pos.x},${pos.y} ${roomName}`);
+                        // Сбросить счетчик после строительства дороги
+                        room.memory.roadUsage[posKey] = 0;
                     }
-                    Game.notify(`New road was built at ${pos.x},${pos.y} ${roomName}`);
-
-                    // Сбросить счетчик после строительства дороги
-                    room.memory.roadUsage[posKey] = 0;
                 }
             }
 
-            // 5 Статистика
+            // 5. Чтение билд планов из файла:
+//            plan = require('build-plan.json');
+//            if (plan && plan.length > 0){
+//                const fullPlan = utils.loadBuildplan(plan);
+//                console.log(JSON.stringify(fullPlan).replace(/"/g, ''));
+//            }
+
+
+            // 6.Статистика
 //            return;
             if (config.useStats){
 
@@ -182,46 +195,5 @@ const RoomManager = {
         }
     }
 };
-
-function drawRoadUsage(room) {
-    const countAccuracy = 148
-    const countDetails = 48
-    const maxUsage = Math.max(...Object.values(room.memory.roadUsage));
-    if (!config.drawRoadMap && !config.drawHeatMap){
-        return;
-    }
-
-    for (const posKey in room.memory.roadUsage) {
-        const [x, y] = posKey.split(",");
-        const pos = new RoomPosition(parseInt(x), parseInt(y), room.name);
-        const usage = room.memory.roadUsage[posKey];
-
-        // Вычисляем usageRate от 1 до 100
-        const usageRate = Math.ceil((usage / maxUsage) * countAccuracy);
-
-        if (config.drawHeatMap){
-            // Вычисляем цвет в зависимости от usageRate
-            const color = `rgb(${255 * ((usage / maxUsage) * countDetails)}, ${255 - (255 * ((usage / maxUsage) * countDetails))}, 0)`;
-
-            // Отрисовываем прозрачный квадратик на позиции
-            room.visual.rect(pos.x-0.5, pos.y-0.5, 1,1, {
-                fill: color,
-                opacity: 0.2,
-            });
-        }
-        if (config.drawRoadMap){
-            if (usageRate <= 1){
-                continue;
-            }
-            room.visual.text(usageRate-1, pos, {
-                font: 0.5,
-                align: "center",
-                opacity: 0.8,
-            });
-        }
-    }
-}
-
-
 
 module.exports = RoomManager;

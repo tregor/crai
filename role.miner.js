@@ -26,8 +26,8 @@ module.exports = {
             }
 
             // Looking in adjacent room
-            // const adjacentRooms = Game.map.describeExits(creep.room.name);
-            const adjacentRooms = [];
+             const adjacentRooms = Game.map.describeExits(creep.room.name);
+//            const adjacentRooms = [];
             for (const roomDirection in adjacentRooms) {
                 const roomName = adjacentRooms[roomDirection];
                 const room = Game.rooms[roomName];

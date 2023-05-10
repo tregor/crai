@@ -22,8 +22,9 @@ module.exports = {
         const controller = creep.room.controller;
         if (controller
             && (controller.owner === undefined)
-            && (controller.reservation === undefined)
+//            && (controller.reservation === undefined)
             && (creep.getActiveBodyparts(CLAIM) > 0)
+            && (controller.pos.findInRange(FIND_MY_CREEPS, 1, {filter: (claimer) => claimer.id !== creep.id}).length < 1)
             && (controller.room.find(FIND_SOURCES).length >= minClaimSources)
         ) {
             if (!creep.memory.claimRoom) {
@@ -38,19 +39,33 @@ module.exports = {
             }
 
             if (creep.pos.inRangeTo(controller, 1)) {
-                if (creep.memory.claimAllowed) {
-                    let res = creep.claimController(controller);
-                    console.log(res)
-                    if (res === OK) {
-                        creep.memory.claimAllowed = false;
-                        creep.memory.claimRoom = null;
-                    }
+                const creeps = controller.pos.findInRange(FIND_MY_CREEPS, 1, {filter: (claimer) => claimer.id !== creep.id});
+                if (creeps.length > 0){
+                    creep.memory.claimRoom = null;
                 }
-                if (Game.gcl.level < Game.spawns.length+1){
+                if (Game.gcl.level < Object.keys(Game.spawns).length+1){
                     // Can't claim bcs of GCL
-                    creep.moveToAndPerform(controller, 'signController', "ZONE 51, UNDER GOV CONTROL");
-                    creep.moveToAndPerform(controller, 'reserveController')
+
+                    const controllerRsrv = creep.room.controller.reservation;
+                    console.log(JSON.stringify(controllerRsrv))
+                    if (controllerRsrv === undefined){
+                        creep.say(JSON.stringify(controllerRsrv))
+                        creep.moveToAndPerform(controller, 'signController', SIGN_NOVICE_AREA);
+                        creep.moveToAndPerform(controller, 'reserveController')
+                    }else{
+                        if (controllerRsrv.ticksToEnd === 'tregor' && controllerRsrv.ticksToEnd < 3000){
+                            creep.moveToAndPerform(controller, 'reserveController')
+                        }
+                    }
+                }else{
+                if (creep.memory.claimAllowed) {
+                        if (creep.claimController(controller) === OK) {
+                            creep.memory.claimAllowed = false;
+                            creep.memory.claimRoom = null;
+                        }
                 }
+                }
+
                 return;
             } else {
                 creep.moveTo(controller, {visualizePathStyle: {stroke: '#ffffff'}});

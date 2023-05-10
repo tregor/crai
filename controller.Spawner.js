@@ -15,6 +15,11 @@ const spawnerController = {
             let energyQueued = _.sum(spawn.memory.spawnQueue, (creep) => energyReqForCreep(creep.role, creep.tier));
 
             let roleCounts = {};
+            for (const roleName in creepRoles){
+                if (!roleCounts[roleName]) {
+                    roleCounts[roleName] = 0;
+                }
+            }
             for (const name in myCreeps) {
                 const creep = myCreeps[name];
                 if (!roleCounts[creep.memory.role]) {
@@ -22,7 +27,6 @@ const spawnerController = {
                 } else {
                     roleCounts[creep.memory.role]++;
                 }
-
             }
 
             if (room.energyCapacityAvailable < config.energyPerTiers[tier]) {
@@ -45,7 +49,7 @@ const spawnerController = {
                     }
                 }
             }
-            // console.log(Object.keys(creepRoles), Object.keys(creepRolesAvailable));
+//             console.log(Object.keys(creepRoles), Object.keys(creepRolesAvailable));
 
 
             // Создаем очередь спавна, если ее еще нет
@@ -78,7 +82,7 @@ const spawnerController = {
                                     ` T${tier} ${Math.round(room.controller.progress / room.controller.progressTotal * 100)}% (~${utils.formatETA(controllerRemainSeconds)})`,
                                     ` NRG: ${energyAvailable}/${room.energyCapacityAvailable} +${energyQueued}`,
                                     ` CPU: ${Math.ceil(cpuUsage/20*100)}% (${cpuUsage.toFixed(2)})`,
-                                    ` Creeps: ${myCreeps.length}`,
+                                    ` BOTs: ${myCreeps.length}`,
             );
             if (spawn.memory.debugFull) {
                 utils.createDebugVisual(room.name, spawn.pos.x, spawn.pos.y + 1,
@@ -89,7 +93,7 @@ const spawnerController = {
             //""" Главная логика спавнов и добавления в очереди
 
             // Добавляем рабочего на 1 место очереди спавна если у нас нет рабочих
-            if (roleCounts['worker'] === 0 && energyAvailable >= 300) {
+            if (roleCounts['worker'] < 1 && energyAvailable >= 200 && energyQueued === 0) {
                 spawn.memory.spawnQueue.unshift({role: 'worker', tier: 1});
                 continue;
             }
@@ -112,6 +116,7 @@ const spawnerController = {
 
                 let alreadyQueued = _.sum(spawn.memory.spawnQueue, {filter: (creep) => creep.role === roleName && creep.tier === roleTier});
                 const spawnCount = desiredCount - existingCount - alreadyQueued;
+//                console.log(roleName,successRate, spawnCount, energyAvailable, energyQueued, energyRequired)
                 for (let i = 0; i < spawnCount; i++) {
                     if (energyAvailable - energyQueued >= energyRequired) {
                         addToSpawnQueue(spawn, role.roleName, roleTier, 1);
@@ -120,15 +125,6 @@ const spawnerController = {
                     }
                 }
             }
-
-            // Сортируем очередь спавна по getSuccessRate
-            // spawn.memory.spawnQueue.sort((a, b) => {
-            //     const roleA = creepRoles[a.role];
-            //     const roleB = creepRoles[b.role];
-            //     const successRateA = roleA.getSuccessRate(spawn.room) || 0;
-            //     const successRateB = roleB.getSuccessRate(spawn.room) || 0;
-            //     return successRateA - successRateB;
-            // });
         }
     },
 };

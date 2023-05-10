@@ -23,7 +23,7 @@ module.exports = {
                 });
                 if (structsConstruct.length > 0) {
                     structsConstruct.sort((a, b) => b.progress - a.progress); // Sort by most progress first
-                    const topStructs = structsConstruct.slice(0, 10);
+                    const topStructs = structsConstruct.slice(0, 3);
                     const closestStruct = creep.pos.findClosestByRange(topStructs);
                     creep.moveToAndPerform(closestStruct, 'build');
                     return;
@@ -85,19 +85,16 @@ module.exports = {
 
         return Math.max(energyRatio, 0.1);
     },
-
-
-    /** @param {number} tier **/
     getBody: function (tier) {
-        const energy = config.energyPerTiers[tier];
-        let workParts = Math.floor((energy - 200) / 150); // определяем количество work частей
-        workParts = Math.min(workParts, Math.floor((energy - 200) / 100)); // ограничиваем по количеству carry частей
-        workParts = Math.max(workParts, 1); // минимальное количество work частей - 1
-        const carryParts = Math.max(Math.ceil((energy - 200 - workParts * 100) / 50), 1); // определяем количество carry частей с учетом минимального набора
-        const moveParts = Math.ceil((workParts + carryParts) * 0.5); // определяем количество move частей
-        const body = [];
+        let body = [];
+        let energyRemain = config.energyPerTiers[tier];
 
-        // добавляем части тела в соответствующем порядке
+        // Рассчитываем количество частей тела для каждого типа
+        let workParts = Math.floor(energyRemain / (BODYPART_COST[WORK] + BODYPART_COST[CARRY] + BODYPART_COST[MOVE]));
+        let carryParts = workParts;
+        let moveParts = workParts;
+
+        // Добавляем части тела в массив body
         for (let i = 0; i < workParts; i++) {
             body.push(WORK);
         }

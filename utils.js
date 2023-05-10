@@ -116,6 +116,138 @@ function createDebugVisual(roomName, x, y, ...texts) {
     }
 }
 
+/**
+* Convert a plan from https://screeps.admon.dev/building-planner
+* to a 2d matrix
+*/
+function loadBuildplan(plan){
+    const xCoordinates = Object.values(plan)
+  .flatMap((x) => x.pos)
+  .map(({ x }) => x);
+    const minX = Math.min(...xCoordinates);
+    const maxX = Math.max(...xCoordinates);
+    const width = maxX - minX + 1;
+
+    const yCoordinates = Object.values(plan)
+  .flatMap(({ pos }) => pos)
+  .map(({ y }) => y);
+    const minY = Math.min(...yCoordinates);
+    const maxY = Math.max(...yCoordinates);
+    const height = maxY - minY + 1;
+
+    console.log({ width, height });
+
+    const matrix = Array.from({ length: height }, () =>
+  Array.from({ length: width }, () => null)
+  );
+
+    for (const [structureType, { pos }] of Object.entries(plan)) {
+        for (const { x, y } of pos) {
+            // @ts-ignore
+            matrix[y - minY][x - minX] = `STRUCTURE_${structureType.toUpperCase()}`;
+        }
+    }
+
+    return matrix;
+}
+
+function drawRoadUsage(room) {
+    const countAccuracy = 148
+    const countDetails = 64
+    const maxUsage = Math.max(...Object.values(room.memory.roadUsage));
+    if (!config.drawRoadMap && !config.drawHeatMap){
+        return;
+    }
+
+    for (const posKey in room.memory.roadUsage) {
+        const [x, y] = posKey.split(",");
+        const pos = new RoomPosition(parseInt(x), parseInt(y), room.name);
+        const usage = room.memory.roadUsage[posKey];
+
+        // Вычисляем usageRate от 1 до 100
+        const usageRate = Math.ceil((usage / maxUsage) * countAccuracy);
+
+        if (config.drawHeatMap){
+            // Вычисляем цвет в зависимости от usageRate
+            const color = `rgb(${255 * ((usage / maxUsage) * countDetails)}, ${255 - (255 * ((usage / maxUsage) * countDetails))}, 0)`;
+
+            // Отрисовываем прозрачный квадратик на позиции
+            room.visual.rect(pos.x-0.5, pos.y-0.5, 1,1, {
+                fill: color,
+                opacity: 0.2,
+            });
+        }
+        if (config.drawRoadMap){
+            if (usageRate <= 1){
+                continue;
+            }
+            room.visual.text(usageRate-1, pos, {
+                font: 0.5,
+                align: "center",
+                opacity: 0.8,
+            });
+        }
+    }
+}
+function drawDistanceTransform(room) {
+    const terrain = new Room.Terrain(room.name);
+    const width = 50;
+    const height = 50;
+    const matrix = new Array(width);
+    for (let x = 0; x < width; x++) {
+        matrix[x] = new Array(height);
+        for (let y = 0; y < height; y++) {
+            const terrainType = terrain.get(x, y);
+            matrix[x][y] = terrainType === TERRAIN_MASK_WALL ? 0 : Infinity;
+        }
+    }
+
+    // Распространяем волну от стен до свободных клеток
+    let wave = 1;
+    let changed = true;
+    while (changed) {
+        changed = false;
+        for (let x = 0; x < width; x++) {
+            for (let y = 0; y < height; y++) {
+                if (matrix[x][y] === wave) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        for (let dy = -1; dy <= 1; dy++) {
+                            const nx = x + dx;
+                            const ny = y + dy;
+                            if (nx >= 0 && nx < width && ny >= 0 && ny < height && matrix[nx][ny] === Infinity) {
+                                matrix[nx][ny] = wave + 1;
+                                changed = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        wave++;
+    }
+
+    // Нормализуем значения Distance-Transform от 0 до 1
+    const maxDistance = Math.max(...matrix.reduce((acc, row) => acc.concat(row), []));
+
+//    for (let x = 0; x < width; x++) {
+//        for (let y = 0; y < height; y++) {
+//            matrix[x][y] /= maxDistance;
+//        }
+//    }
+
+    // Отрисовываем Distance-Transform на карте
+    for (let x = 0; x < width; x++) {
+        for (let y = 0; y < height; y++) {
+            const pos = new RoomPosition(x, y, room.name);
+            const distance = matrix[x][y];
+            room.visual.rect(pos.x-0.5, pos.y-0.5, 1, 1, {
+                fill: `rgba(0, 0, ${(distance * 255)}, 1)`,
+                opacity: 0.5,
+            });
+        }
+    }
+}
+
 
 module.exports = {
     setStat,
@@ -125,4 +257,7 @@ module.exports = {
     getAvgStat,
     formatETA,
     createDebugVisual,
+    loadBuildplan,
+    drawRoadUsage,
+    drawDistanceTransform,
 };

@@ -21,7 +21,7 @@ module.exports = {
             const extensions = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return (
-                            structure.structureType === STRUCTURE_EXTENSION
+                        structure.structureType === STRUCTURE_EXTENSION
                             || structure.structureType === STRUCTURE_SPAWN)
                         && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                 }
@@ -32,7 +32,7 @@ module.exports = {
             }
 
             // Find the nearest container and transfer energy to it
-            let containers = creep.room.find(FIND_STRUCTURES, {
+            const containers = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return (structure.structureType === STRUCTURE_CONTAINER) &&
                         structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
@@ -40,6 +40,20 @@ module.exports = {
             });
             if (containers.length > 0) {
                 let nearestContainer = creep.pos.findClosestByRange(containers);
+                creep.moveToAndPerform(nearestContainer, 'transfer', RESOURCE_ENERGY);
+                return;
+            }
+
+
+            // Find the nearest storage and transfer energy to it
+            const storages = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (structure.structureType === STRUCTURE_STORAGE) &&
+                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                }
+            });
+            if (storages.length > 0) {
+                let nearestContainer = creep.pos.findClosestByRange(storages);
                 creep.moveToAndPerform(nearestContainer, 'transfer', RESOURCE_ENERGY);
                 return;
             }

@@ -6,6 +6,8 @@ module.exports = {
     useStats: true,
     drawRoadMap: false,
     drawHeatMap: false,
+    drawDistMap: false,
+    roadThreshold: 20000,
     statsMaxTicks: 600,
     energyPerTier: 200,
     energyPerTiers: {
@@ -17,8 +19,7 @@ module.exports = {
     },
     minersPerSource: 1,
     creepsPerTier:
-    // [2, 3, 5, 7, 11, 13, 17, 19],
-        [1, 2, 4, 6, 9, 13],
+        [1, 2, 3, 5, 7, 11, 13, 17],
     constructionSitePriority: [
         STRUCTURE_LINK,
         STRUCTURE_EXTRACTOR,
