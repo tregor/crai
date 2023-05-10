@@ -22,7 +22,7 @@ module.exports = {
         const controller = creep.room.controller;
         if (controller
             && (controller.owner === undefined)
-//            && (controller.reservation === undefined)
+            //            && (controller.reservation === undefined)
             && (creep.getActiveBodyparts(CLAIM) > 0)
             && (controller.pos.findInRange(FIND_MY_CREEPS, 1, {filter: (claimer) => claimer.id !== creep.id}).length < 1)
             && (controller.room.find(FIND_SOURCES).length >= minClaimSources)
@@ -40,30 +40,29 @@ module.exports = {
 
             if (creep.pos.inRangeTo(controller, 1)) {
                 const creeps = controller.pos.findInRange(FIND_MY_CREEPS, 1, {filter: (claimer) => claimer.id !== creep.id});
-                if (creeps.length > 0){
+                if (creeps.length > 0) {
                     creep.memory.claimRoom = null;
                 }
-                if (Game.gcl.level < Object.keys(Game.spawns).length+1){
+                if (Game.gcl.level < Object.keys(Game.spawns).length + 1) {
                     // Can't claim bcs of GCL
 
                     const controllerRsrv = creep.room.controller.reservation;
-                    console.log(JSON.stringify(controllerRsrv))
-                    if (controllerRsrv === undefined){
+                    if (controllerRsrv === undefined) {
                         creep.say(JSON.stringify(controllerRsrv))
                         creep.moveToAndPerform(controller, 'signController', SIGN_NOVICE_AREA);
                         creep.moveToAndPerform(controller, 'reserveController')
-                    }else{
-                        if (controllerRsrv.ticksToEnd === 'tregor' && controllerRsrv.ticksToEnd < 3000){
+                    } else {
+                        if (controllerRsrv.username === 'tregor' && controllerRsrv.ticksToEnd < 3000) {
                             creep.moveToAndPerform(controller, 'reserveController')
                         }
                     }
-                }else{
-                if (creep.memory.claimAllowed) {
+                } else {
+                    if (creep.memory.claimAllowed) {
                         if (creep.claimController(controller) === OK) {
                             creep.memory.claimAllowed = false;
                             creep.memory.claimRoom = null;
                         }
-                }
+                    }
                 }
 
                 return;
@@ -75,19 +74,16 @@ module.exports = {
 
         // Если есть что исследовать, то сделать уведомление и сохранить тип предмета
         const resources = creep.room.find(FIND_MINERALS);
-        for (const mineral in resources) {
-            if (!Memory.seenMinerals[resources[mineral].mineralType]) {
-                Memory.seenMinerals[resources[mineral].mineralType] = true;
-                // Memory.seenMinerals[resources[mineral].mineralType] TODO save position of every mineral found
-                console.log(`Scout found new mineral: ${resources[0].mineralType}`); //TODO: improve text "...in room X with amount Y and so on"
+        for (const mineral of resources) {
+            if (!Memory.seenMinerals[mineral.mineralType]) {
+                Memory.seenMinerals[mineral.mineralType] = [];
             }
+            Memory.seenMinerals[mineral.mineralType].push(mineral.pos);
+            console.log(`Scout found new mineral: ${mineral.mineralType} at (${mineral.pos.x},${mineral.pos.y})`);
         }
 
         // Перейти в ближайшую неисследованную комнату или случайную, если все исследованы
-        Memory.seenRooms[creep.room.name] = true;
-        // if (!Game.rooms[creep.memory.targetRoom]) {
-        //     creep.memory.targetRoom = null;
-        // }
+//        Memory.seenRooms[creep.room.name] = true; TODO CACHE
         if ((!creep.memory.targetRoom) || (creep.room.name === creep.memory.targetRoom)) {
             if (!Game.map.describeExits(creep.room.name)) {
                 return;
@@ -106,12 +102,9 @@ module.exports = {
                     const exit = creep.pos.findClosestByRange(route[0].exit);
                     creep.moveTo(exit);
                 }
-                // console.log(`random room is ${creep.memory.targetRoom}`)
-                // creep.memory.targetRoom = _.sample(Game.map.describeExits(creep.room.name));
             }
         }
         if (creep.memory.targetRoom) {
-            // Перейти в целевую комнату
             creep.moveTo(new RoomPosition(25, 25, creep.memory.targetRoom), {visualizePathStyle: {stroke: '#ffffff'}});
         }
     },
@@ -121,12 +114,13 @@ module.exports = {
     getBody: function (tier) {
         let body = [];
         let energy = config.energyPerTiers[tier];
-        // console.log(tier, energy)
         body.push(CLAIM);
         energy -= BODYPART_COST[CLAIM];
-        // console.log(JSON.stringify(BODYPART_COST[CLAIM]))
-        const bodyMoveCount = Math.floor(energy / BODYPART_COST[MOVE]); // увеличиваем количество work частей
-        // добавляем части тела в соответствующем порядке
+        if (energ > BODYPART_COST[CLAIM] * 1.2) {
+            body.push(CLAIM);
+            energy -= BODYPART_COST[CLAIM];
+        }
+        const bodyMoveCount = Math.floor(energy / BODYPART_COST[MOVE]);
         for (let i = 0; i < bodyMoveCount; i++) {
             body.push(MOVE);
         }
