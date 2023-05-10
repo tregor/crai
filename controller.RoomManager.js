@@ -26,6 +26,9 @@ const RoomManager = {
                     rooms: {},
                 };
             }
+            if (!Memory.room) {
+                Memory.room = {};
+            }
             if (!Memory.room[roomName]) {
                 Memory.room[roomName] = {};
             }
