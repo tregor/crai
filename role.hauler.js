@@ -17,6 +17,19 @@ module.exports = {
 
 
         if (creep.memory.delivering) {
+            // Find the nearest container and transfer energy to it
+            const containers = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (structure.structureType === STRUCTURE_CONTAINER) &&
+                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                }
+            });
+            if (containers.length > 0) {
+                let nearestContainer = creep.pos.findClosestByRange(containers);
+                creep.moveToAndPerform(nearestContainer, 'transfer', RESOURCE_ENERGY);
+                return;
+            }
+
             // Find spawns, extensions or towers and deliver energy to them
             const extensions = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
@@ -28,19 +41,6 @@ module.exports = {
             });
             if (extensions.length) {
                 creep.moveToAndPerform(creep.pos.findClosestByRange(extensions), 'transfer', RESOURCE_ENERGY);
-                return;
-            }
-
-            // Find the nearest container and transfer energy to it
-            const containers = creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (structure.structureType === STRUCTURE_CONTAINER) &&
-                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-                }
-            });
-            if (containers.length > 0) {
-                let nearestContainer = creep.pos.findClosestByRange(containers);
-                creep.moveToAndPerform(nearestContainer, 'transfer', RESOURCE_ENERGY);
                 return;
             }
 
