@@ -51,7 +51,8 @@ Room.deserializeName = function (sName) {
     return `${xDir}${x}${yDir}${y}`;
 };
 
-Room.getCoordinates = function (name) {
+Room.prototype.getCoordinates = function () {
+    const name = this.name;
     const coordinateRegex = /(E|W)(\d+)(N|S)(\d+)/g;
     const match = coordinateRegex.exec(name);
     return {
@@ -62,7 +63,8 @@ Room.getCoordinates = function (name) {
     };
 };
 
-Room.describe = function(name) {
+Room.prototype.describe = function() {
+    const name = this.name;
     const [EW, NS] = name.match(/\d+/g)
     if (EW%10 == 0 && NS%10 == 0) {
         return ROOM_CROSSROAD
