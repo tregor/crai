@@ -111,7 +111,7 @@ const spawnerController = {
                 const successRate = Math.max(role.getSuccessRate(spawn.room) || 0, 0.1);
                 const roleWeight = role.weight || 1; // Default weight is 1
                 // let desiredCount = Math.min(Math.max(calculateRequiredCreeps(existingCount, successRate) * roleWeight, 1), config.creepsPerTier[tier - 1]);
-                let desiredCount = Math.ceil(Math.max(existingCount, 0.01) / successRate);
+                let desiredCount = Math.min(Math.ceil(Math.max(existingCount, 0.01) / successRate), tier);
                 let energyRequired = energyReqForCreep(roleName, tier);
                 let roleTier = Math.min(Math.ceil(tier * energyAvailable / energyRequired), tier);
 //                spawn.memory.debugFull.push(`${role.name} e:${existingCount} s:${successRate} d:${desiredCount} n:${energyRequired}`);
