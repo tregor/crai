@@ -14,29 +14,6 @@ const RoomManager = {
             const room = myRooms[roomName];
             const eventLog = room.getEventLog();
 
-            // Инициализация объекта статистики для текущего тика
-            if (!Memory.stats) {
-                Memory.stats = {};
-            }
-            if (!Memory.stats.ticks) {
-                Memory.stats.ticks = {};
-            }
-            if (!Memory.stats.ticks[Game.time]) {
-                Memory.stats.ticks[Game.time] = {
-                    rooms: {},
-                };
-            }
-            if (!Memory.room) {
-                Memory.room = {};
-            }
-            if (!Memory.room[roomName]) {
-                Memory.room[roomName] = {};
-            }
-            if (!Memory.room[roomName].roadUsage) {
-                Memory.room[roomName].roadUsage = {};
-            }
-
-
             if (Object.keys(Memory.stats.ticks).length > config.statsMaxTicks) {
                 const minTick = Math.min(...Object.keys(Memory.stats.ticks));
                 delete Memory.stats.ticks[minTick];
