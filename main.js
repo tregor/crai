@@ -6,6 +6,7 @@ const towerController = require('./controller.Towers');
 const config = require('./config');
 const utils = require("./utils");
 const creepRoles = require('./roles');
+
 require('extends.Creep');
 
 require('main-init');

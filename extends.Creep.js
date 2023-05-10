@@ -2,6 +2,80 @@ const config = require('./config');
 const utils = require("./utils");
 const creepRoles = require('./roles');
 
+/**
+ * Globally patch creep actions to log error codes.
+ */
+[
+    "attack",
+    "attackController",
+    "build",
+    "claimController",
+    "dismantle",
+    "drop",
+    "generateSafeMode",
+    "harvest",
+    "heal",
+    "move",
+    "moveByPath",
+    "moveTo",
+    "pickup",
+    "rangedAttack",
+    "rangedHeal",
+    "rangedMassAttack",
+    "repair",
+    "reserveController",
+    "signController",
+    "suicide",
+    "transfer",
+    "upgradeController",
+    "withdraw"
+].forEach(function(method) {
+    let original = Creep.prototype[method];
+    // Magic
+    Creep.prototype[method] = function() {
+        let status = original.apply(this, arguments);
+        if (typeof status === "number" && status < 0) {
+            console.log(
+                `Creep ${this.name} action ${method} failed with status ${MSG_ERR[status]} at ${
+                    this.pos
+                }`
+                );
+        }
+        return status;
+    };
+});
+
+Object.defineProperty(Creep.prototype, "idle", {
+    get: function() {
+        if (this.memory.idle === undefined) return 0;
+        if (this.memory.idle <= Game.time) {
+            this.idle = undefined;
+            return 0;
+        }
+        return this.memory.idle;
+        },
+    set: function(val) {
+        if (!val && this.memory.idle) {
+            delete this.memory.idle;
+        } else {
+            this.memory.idle = val;
+        }
+    }
+});
+
+/**
+ * Set the unit to idle-mode for ticks given
+ *
+ * @type {int}
+ */
+Creep.prototype.idleFor = function(ticks = 0) {
+    if (ticks > 0) {
+        console.log("Suspend", this, "for", ticks, this.target);
+        this.idle = Game.time + ticks;
+    } else {
+        this.idle = undefined;
+    }
+};
 Creep.prototype.getFullname = function () {
     if (!this.memory.tier || !this.memory.role) {
         return this.name;
@@ -9,6 +83,11 @@ Creep.prototype.getFullname = function () {
     let role = creepRoles[this.memory.role];
     let labelRole = (role.roleName.charAt(0).toUpperCase() + role.roleName.slice(1));
     return `T${this.memory.tier}${labelRole}`;
+}
+Creep.prototype.sing = function(sentence, public){
+    if(public === undefined)public = true;
+    let words = sentence.split("|");
+    this.say(words[Game.time % words.length], public);
 }
 Creep.prototype.moveToAndPerform = function (target, action, ...args) {
     if (this.fatigue > 0) return OK;//TIRED

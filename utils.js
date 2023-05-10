@@ -1,11 +1,5 @@
 const config = require('./config');
 
-if (!Memory.seenRooms) {
-    Memory.seenRooms = {};
-}
-if (!Memory.seenMinerals) {
-    Memory.seenMinerals = {};
-}
 
 
 function setStat(path, value) {
@@ -265,7 +259,50 @@ function drawDistanceTransform(room) {
         }
     }
 }
+/**
+ * Clear the in-game console
+ * Usage: `clear()` in the console
+ */
+global.clear = function() {
+    console.log(
+        "<script>angular.element(document.getElementsByClassName('fa fa-trash ng-scope')[0].parentNode).scope().Console.clear()</script>"
+        );
+};
+// warinternal 24 November 2016 at 04:15
+global.RAMPART_UPKEEP =
+  RAMPART_DECAY_AMOUNT / REPAIR_POWER / RAMPART_DECAY_TIME;
+global.ROAD_UPKEEP = ROAD_DECAY_AMOUNT / REPAIR_POWER / ROAD_DECAY_TIME;
+global.CONTAINER_UPKEEP =
+  CONTAINER_DECAY / REPAIR_POWER / CONTAINER_DECAY_TIME_OWNED;
+global.REMOTE_CONTAINER_UPKEEP =
+  CONTAINER_DECAY / REPAIR_POWER / CONTAINER_DECAY_TIME;
+/**
+ * Lookup tables
+ */
+global.MSG_ERR = _(global)
+  .pick((v, k) => k.startsWith("ERR_"))
+  .invert()
+  .value();
 
+global.MSG_COLOR = _(global)
+  .pick((v, k) => k.startsWith("COLOR_"))
+  .invert()
+  .value();
+
+global.MSG_FIND = _(global)
+  .pick((v, k) => k.startsWith("FIND_"))
+  .invert()
+  .value();
+
+global.MSG_STRUCT = _(global)
+  .pick((v, k) => k.startsWith("STRUCTURE_"))
+  .invert()
+  .value();
+
+global.MSG_RES = _(global)
+  .pick((v, k) => k.startsWith("RESOURCE_"))
+  .invert()
+  .value();
 
 module.exports = {
     setStat,
