@@ -117,7 +117,8 @@ function createDebugVisual(roomName, x, y, ...texts) {
  */
 function loadBuildplan(room, plan) {
     for (const [structType, positions] of Object.entries(plan.buildings)) {
-        for (const { x, y } of positions) {
+        for (const objectsPos of positions) {
+            console.log(JSON.stringify(objectsPos))
             const pos = new RoomPosition(x, y, room.name)
             const objectsAtPos = pos.lookFor(LOOK_CONSTRUCTION_SITES).concat(pos.lookFor(LOOK_STRUCTURES));
             if (objectsAtPos.length === 0) {
