@@ -371,16 +371,13 @@ function calculateCostOfaMine(distance, swampCount, mineCapacity) {
     };
 }
 
-function resetMemory(){
+global.resetMemory = function(){
     RawMemory.set('{}');
     Memory.creeps = {};
     Memory.rooms = {};
     Memory.flags = {};
     Memory.spawns = {};
 }
-
-
-
 /**
  * Clear the in-game console
  * Usage: `clear()` in the console
