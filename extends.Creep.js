@@ -35,11 +35,7 @@ const creepRoles = require('./roles');
     Creep.prototype[method] = function() {
         let status = original.apply(this, arguments);
         if (typeof status === "number" && status < 0) {
-            console.log(
-                `Creep ${this.name} action ${method} failed with status ${MSG_ERR[status]} at ${
-                    this.pos
-                }`
-                );
+//            console.log(`${this.name} ${method} failed: ${MSG_ERR[status]} at ${this.pos}`);
         }
         return status;
     };
@@ -170,6 +166,10 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
         moveOpts.ignoreDestructibleStructures = true;
         moveOpts.ignoreRoads = false;
         res = this.moveTo(target, moveOpts);
+    }
+
+    if (typeof res === "number" && res < 0) {
+        console.log(`${this.name} ${method} failed: ${MSG_ERR[res]} at ${this.pos}`);
     }
     // this.say(res)
     return res;

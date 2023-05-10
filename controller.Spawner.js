@@ -84,11 +84,11 @@ const spawnerController = {
                                     ` CPU: ${Math.ceil(cpuUsage/20*100)}% (${cpuUsage.toFixed(2)})`,
                                     ` BOTs: ${myCreeps.length}`,
             );
-            if (spawn.memory.debugFull) {
-                utils.createDebugVisual(room.name, spawn.pos.x, spawn.pos.y + 1,
-                    JSON.stringify(spawn.memory.debugFull),
-                );
-            }
+//            if (spawn.memory.debugFull) {
+//                utils.createDebugVisual(room.name, spawn.pos.x, spawn.pos.y + 1,
+//                    JSON.stringify(spawn.memory.debugFull),
+//                );
+//            }
 
             //""" Главная логика спавнов и добавления в очереди
 
