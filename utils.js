@@ -250,7 +250,7 @@ function drawDistanceTransform(room) {
                 opacity: 0.5,
             });
             room.visual.text(distance, pos.x, pos.y, {
-                font: '0.5 Arial',
+                fontSize: 0.5 * distance,
                 align: 'center',
                 color: 'white',
             });
