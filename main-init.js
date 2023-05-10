@@ -10,12 +10,15 @@ if (!Memory.stats.ticks[Game.time]) {
         rooms: {},
     };
 }
-if (!Memory.room) {
-    Memory.room = {};
+
+if (!Memory.rooms) {
+    Memory.rooms = {};
 }
-if (!Memory.room[roomName]) {
-    Memory.room[roomName] = {};
-}
-if (!Memory.room[roomName].roadUsage) {
-    Memory.room[roomName].roadUsage = {};
+for (const roomName in Game.rooms) {
+    if (!Memory.rooms[roomName]) {
+        Memory.rooms[roomName] = {};
+    }
+    if (!Memory.rooms[roomName].roadUsage) {
+        Memory.rooms[roomName].roadUsage = {};
+    }
 }
