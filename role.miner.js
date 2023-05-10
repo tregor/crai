@@ -31,7 +31,7 @@ module.exports = {
             for (const roomDirection in adjacentRooms) {
                 const roomName = adjacentRooms[roomDirection];
                 const room = Game.rooms[roomName];
-                if (!room || !Memory.seenRooms[roomName]) {
+                if (!room || !Memory.stats.seenRooms[roomName]) {
                     // Room not explored
                     // console.log(`Miner's Room ${roomName} not explored`)
                     creep.moveTo(new RoomPosition(25, 25, roomName));

@@ -11,11 +11,13 @@ if (!Memory.stats.ticks[Game.time]) {
     };
 }
 
-if (!Memory.seenRooms) {
-    Memory.seenRooms = {};
+
+
+if (!Memory.stats.seenRooms) {
+    Memory.stats.seenRooms = {};
 }
-if (!Memory.seenMinerals) {
-    Memory.seenMinerals = {};
+if (!Memory.stats.seenMinerals) {
+    Memory.stats.seenMinerals = {};
 }
 
 if (!Memory.rooms) {

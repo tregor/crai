@@ -75,21 +75,21 @@ module.exports = {
         // Если есть что исследовать, то сделать уведомление и сохранить тип предмета
         const resources = creep.room.find(FIND_MINERALS);
         for (const mineral of resources) {
-            if (!Memory.seenMinerals[mineral.mineralType]) {
-                Memory.seenMinerals[mineral.mineralType] = {};
+            if (!Memory.stats.seenMinerals[mineral.mineralType]) {
+                Memory.stats.seenMinerals[mineral.mineralType] = {};
             }
-            Memory.seenMinerals[mineral.mineralType].push(mineral.pos);
+            Memory.stats.seenMinerals[mineral.mineralType].push(mineral.pos);
             console.log(`Scout found new mineral: ${mineral.mineralType} at (${mineral.pos.x},${mineral.pos.y})`);
         }
 
         // Перейти в ближайшую неисследованную комнату или случайную, если все исследованы
-//        Memory.seenRooms[creep.room.name] = true; TODO CACHE
+        //        Memory.stats.seenRooms[creep.room.name] = true; TODO CACHE
         if ((!creep.memory.targetRoom) || (creep.room.name === creep.memory.targetRoom)) {
             if (!Game.map.describeExits(creep.room.name)) {
                 return;
             }
 
-            const unexploredRooms = _.filter(Game.map.describeExits(creep.room.name), (roomName) => !Memory.seenRooms[roomName]);
+            const unexploredRooms = _.filter(Game.map.describeExits(creep.room.name), (roomName) => !Memory.stats.seenRooms[roomName]);
             if (unexploredRooms.length > 0) {
                 creep.memory.targetRoom = _.sample(unexploredRooms);
             } else {
