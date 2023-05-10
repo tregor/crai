@@ -81,7 +81,9 @@ const RoomManager = {
             }
 
             // 5. Чтение билд планов из файла:
-            const buildplan = JSON.parse( include('build-plan.json') );
+            const fs = require('fs');
+            const buildPlanData = fs.readFileSync('build-plan.json', 'utf8');
+            const buildPlan = JSON.parse(buildPlanData);
             if (buildplan && buildplan.length > 0) {
                 utils.loadBuildplan(buildplan);
             }
