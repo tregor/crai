@@ -41,23 +41,25 @@ const creepRoles = require('./roles');
     };
 });
 
-Object.defineProperty(Creep.prototype, "idle", {
-    get: function() {
-        if (this.memory.idle === undefined) return 0;
-        if (this.memory.idle <= Game.time) {
-            this.idle = undefined;
-            return 0;
-        }
-        return this.memory.idle;
-        },
+if (!Creep.prototype.idle){
+    Object.defineProperty(Creep.prototype, "idle", {
+        get: function() {
+            if (this.memory.idle === undefined) return 0;
+            if (this.memory.idle <= Game.time) {
+                this.idle = undefined;
+                return 0;
+            }
+            return this.memory.idle;
+            },
     set: function(val) {
-        if (!val && this.memory.idle) {
-            delete this.memory.idle;
-        } else {
-            this.memory.idle = val;
+            if (!val && this.memory.idle) {
+                delete this.memory.idle;
+            } else {
+                this.memory.idle = val;
+            }
         }
-    }
-});
+    });
+}
 
 /**
  * Set the unit to idle-mode for ticks given
