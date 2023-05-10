@@ -116,7 +116,7 @@ module.exports = {
         let energy = config.energyPerTiers[tier];
         body.push(CLAIM);
         energy -= BODYPART_COST[CLAIM];
-        if (energ > BODYPART_COST[CLAIM] * 1.2) {
+        if (energy > BODYPART_COST[CLAIM] * 1.2) {
             body.push(CLAIM);
             energy -= BODYPART_COST[CLAIM];
         }

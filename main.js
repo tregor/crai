@@ -25,13 +25,14 @@ function wrapLoop(fn) {
     let tick;
 
     return () => {
-//        if (tick && tick + 1 === Game.time && memory) {
-//            // this line is required to disable the default Memory deserialization
-//            delete global.Memory;
-//            Memory = memory;
-//        } else {
-//            memory = Memory;
-//        }
+        if (tick && tick + 1 === Game.time && memory) {
+            // this line is required to disable the default Memory deserialization
+            delete global.Memory;
+            Memory = memory;
+        } else {
+            memory = Memory;
+        }
+
 
         tick = Game.time;
 
