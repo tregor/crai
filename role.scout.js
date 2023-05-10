@@ -78,8 +78,10 @@ module.exports = {
             if (!Memory.stats.seenMinerals[mineral.mineralType]) {
                 Memory.stats.seenMinerals[mineral.mineralType] = [];
             }
-            Memory.stats.seenMinerals[mineral.mineralType].push(mineral.pos);
-            console.log(`Scout found new mineral: ${mineral.mineralType} at (${mineral.pos.x},${mineral.pos.y})`);
+            if (typeof Memory.stats.seenMinerals[mineral.mineralType].push === 'function') {
+                Memory.stats.seenMinerals[mineral.mineralType].push(mineral.pos);
+                console.log(`Scout found new mineral: ${mineral.mineralType} at (${mineral.pos.x},${mineral.pos.y})`);
+            }
         }
 
         // Перейти в ближайшую неисследованную комнату или случайную, если все исследованы
