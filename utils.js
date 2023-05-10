@@ -140,9 +140,10 @@ function loadBuildplan(room, plan) {
     for (const [structType, positions] of Object.entries(buildlist)) {
         for (const pos of positions) {
             const objectsAtPos = pos.lookFor(LOOK_CONSTRUCTION_SITES).concat(pos.lookFor(LOOK_STRUCTURES));
-            console.log(structType, pos, (objectsAtPos.length === 0))
+            console.log(structType, pos, objectsAtPos)
             if (objectsAtPos.length === 0) {
-                room.createConstructionSite(pos, structType);
+                let res = room.createConstructionSite(pos, structType);
+                console.log(res)
             }
         }
     }
