@@ -15,20 +15,23 @@ const controllerCreeps = {
             const creep = Game.creeps[name];
             const role = creepRoles[creep.memory.role];
 
-            if (role) {
-                role.run(creep);
-            }
+            if(creep.spawning) continue;
+            if(creep.idle) continue;
 
-            if( creep.spawning) continue;
             if (creep.ticksToLive === 1) {
                 creep.say('☠️ dying');
-//                 console.log(`${creep} ${creep.pos} died naturally.`);
                 for(const resourceType in creep.carry) {
                     creep.drop(resourceType);
                 }
                 delete Memory.creeps[creep.name];
+                continue;
+            }
+
+            if (role) {
+                role.run(creep);
             }
         }
+
         for (const creepName in Memory.creeps) {
             if (!(creepName in Game.creeps)) {
                 for (const roomName in Game.rooms) {
