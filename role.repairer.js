@@ -33,17 +33,6 @@ module.exports = {
                 return;
             }
 
-
-            // Чиним крипов
-            const brokenCreep = creep.pos.findClosestByRange(FIND_MY_CREEPS, 16, {
-                filter: (brokenCreep) => brokenCreep.ticksToLive < 1500 * 0.1 //1500 max ttl
-                    && brokenCreep.memory.tier >= 4
-            });
-            if (brokenCreep) {
-                let res = creep.moveToAndPerform(brokenCreep, 'repair');
-//                console.log(res)
-            }
-
             // Repair others
             structsRepair = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
