@@ -137,24 +137,23 @@ function loadBuildplan(room, plan) {
     }
     console.log(JSON.stringify(buildlist))
 
-    for (const [structureType, positions] of Object.entries(buildlist)) {
+    for (const [structType, positions] of Object.entries(buildlist)) {
         const structures = room.find(FIND_MY_STRUCTURES, {
-            filter: {structureType}
+            filter: {structureType: structType}
         });
         const numStructures = structures.length;
         const numPositions = positions.length;
         const numConstructionSites = room.find(FIND_MY_CONSTRUCTION_SITES, {
-            filter: {structureType}
+            filter: {structureType: structType}
         }).length;
         const numNeeded = numPositions - numStructures - numConstructionSites;
         if (numNeeded > 0) {
             const positionsToBuild = positions.slice(numStructures, numStructures + numNeeded);
             for (const pos of positionsToBuild) {
-                room.createConstructionSite(pos, structureType);
+                room.createConstructionSite(pos, structType);
             }
         }
     }
-
 
     return matrix;
 }
