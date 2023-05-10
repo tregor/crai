@@ -115,7 +115,7 @@ function createDebugVisual(roomName, x, y, ...texts) {
  * Convert a plan from https://screeps.admon.dev/building-planner
  * to a 2d matrix
  */
-function loadBuildplan(plan) {
+function loadBuildplan(room, plan) {
     const buildlist = {};
     const width = 50;
     const height = 50;
