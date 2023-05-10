@@ -76,7 +76,7 @@ module.exports = {
         const resources = creep.room.find(FIND_MINERALS);
         for (const mineral of resources) {
             if (!Memory.seenMinerals[mineral.mineralType]) {
-                Memory.seenMinerals[mineral.mineralType] = [];
+                Memory.seenMinerals[mineral.mineralType] = {};
             }
             Memory.seenMinerals[mineral.mineralType].push(mineral.pos);
             console.log(`Scout found new mineral: ${mineral.mineralType} at (${mineral.pos.x},${mineral.pos.y})`);

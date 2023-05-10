@@ -34,27 +34,28 @@ const controllerCreeps = {
 
         for (const creepName in Memory.creeps) {
             if (!(creepName in Game.creeps)) {
-                for (const roomName in Game.rooms) {
-                    const room = Game.rooms[roomName];
-                    const tombstones = room.find(FIND_TOMBSTONES, {filter: {creep: {name: creepName}}});
-                    const events = room.getEventLog().filter(event => event.event === EVENT_OBJECT_DESTROYED && event.data && event.data.type === 'creep' && event.data.creep === creepName);
+                const creepMemory = Memory.creeps[creepName];
+                delete Memory.creeps[creepName];
 
-                    if (events.length) {
-                        const creep = Game.getObjectById(events[0].objectId)
-                        console.log(JSON.stringify(creep));
-                        console.log(`${creep.getFullname()} killed in room ${roomName} ` + JSON.stringify(events));
-                        // Do something with the information, e.g. add to statistics or send notification
-                        delete Memory.creeps[creepName];
-                        break; // Once we've found the room, we don't need to continue iterating
-                    }
-                    if (tombstones.length) {
-                        const creep = tombstones[0].creep;
-                        console.log(`${creep.getFullname()} died in room ${roomName}`);
-                        // Do something with the information, e.g. add to statistics or send notification
-                        delete Memory.creeps[creepName];
-                        break; // Once we've found the room, we don't need to continue iterating
-                    }
-                }
+//                for (const roomName in Game.rooms) {
+//                    const room = Game.rooms[roomName];
+//                    const tombstones = room.find(FIND_TOMBSTONES, {filter: {creep: {name: creepName}}});
+//                    const events = room.getEventLog().filter(event => event.event === EVENT_OBJECT_DESTROYED && event.data && event.data.type === 'creep' && event.data.creep === creepName);
+//
+//                    if (events.length) {
+//                        const creep = Game.getObjectById(events[0].objectId)
+//                        console.log(JSON.stringify(creep));
+//                        console.log(`${creep.getFullname()} killed in room ${roomName} ` + JSON.stringify(events));
+//                        // Do something with the information, e.g. add to statistics or send notification
+//                        break; // Once we've found the room, we don't need to continue iterating
+//                    }
+//                    if (tombstones.length) {
+//                        const creep = tombstones[0].creep;
+//                        console.log(`${creep.getFullname()} died in room ${roomName}`);
+//                        // Do something with the information, e.g. add to statistics or send notification
+//                        break; // Once we've found the room, we don't need to continue iterating
+//                    }
+//                }
             }
         }
     }
