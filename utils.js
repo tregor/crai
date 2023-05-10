@@ -116,15 +116,12 @@ function createDebugVisual(roomName, x, y, ...texts) {
  * to a 2d matrix
  */
 function loadBuildplan(plan) {
-    console.log(JSON.stringify(plan))
     const buildlist = {};
     const width = 50;
     const height = 50;
-
     const matrix = Array.from({length: height}, () =>
         Array.from({length: width}, () => null)
     );
-
 
     for (const [structureType, {pos}] of Object.entries(plan)) {
         for (const {x, y} of pos) {
