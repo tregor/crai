@@ -234,15 +234,22 @@ function drawDistanceTransform(room) {
     }
 
     const maxDistance = Math.max(...matrix.reduce((acc, row) => acc.concat(row), []));
-
+    const interpolate = (value, min, max) => min + (max - min) * value;
     for (let x = 0; x < width; x++) {
         for (let y = 0; y < height; y++) {
             const pos = new RoomPosition(x, y, room.name);
             const distance = matrix[x][y];
-            const blueValue = Math.round((distance / maxDistance) * 255);
+            const normalizedDistance = distance / maxDistance;
+            const interpolatedDistance = interpolate(normalizedDistance, 0.2, 1);
+            const blueValue = Math.round(interpolatedDistance * 255);
             room.visual.rect(pos.x - 0.5, pos.y - 0.5, 1, 1, {
                 fill: `rgba(0, 0, ${blueValue}, 1)`,
                 opacity: 0.5,
+            });
+            room.visual.text(distance.toFixed(1), pos.x, pos.y, {
+                font: '0.5 Arial',
+                align: 'center',
+                color: 'white',
             });
         }
     }
