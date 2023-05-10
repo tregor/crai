@@ -135,9 +135,9 @@ function loadBuildplan(room, plan) {
             }
         }
     }
-    console.log(JSON.stringify(buildlist))
 
     for (const [structType, positions] of Object.entries(buildlist)) {
+        console.log(structType, positions.length)
         const structures = room.find(FIND_MY_STRUCTURES, {
             filter: {structureType: structType}
         });
