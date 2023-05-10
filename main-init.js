@@ -1,3 +1,11 @@
+require('extends.ConstructionSite');
+require('extends.Creep');
+require('extends.Room');
+require('extends.RoomPosition');
+require('extends.Source');
+require('extends.Structure');
+require('extends.StructureObserver');
+
 // Инициализация объекта статистики для текущего тика
 if (!Memory.stats) {
     Memory.stats = {};

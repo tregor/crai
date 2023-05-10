@@ -7,16 +7,7 @@ const config = require('./config');
 const utils = require("./utils");
 const creepRoles = require('./roles');
 
-require('extends.ConstructionSite');
-require('extends.Creep');
-require('extends.Room');
-require('extends.RoomPosition');
-require('extends.Source');
-require('extends.Structure');
-require('extends.StructureObserver');
-
 require('main-init');
-
 module.exports = {
     loop:  wrapWithMemoryHack(function () {
         roomManager.run();
@@ -32,9 +23,8 @@ function wrapLoop(fn) {
 
     return () => {
         if (tick && tick + 1 === Game.time && memory) {
-            // this line is required to disable the default Memory deserialization
             delete global.Memory;
-            Memory = memory;
+            global.Memory = memory;
         } else {
             memory = Memory;
         }
@@ -53,6 +43,7 @@ function wrapWithMemoryHack(fn) {
         global.Memory = memory;
         fn();
 
-        RawMemory.set(JSON.stringify(Memory));
+//        RawMemory.set(JSON.stringify(Memory));
+          RawMemory._parsed = Memory;
     };
 };
