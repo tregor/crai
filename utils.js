@@ -75,7 +75,7 @@ function createDebugVisual(roomName, x, y, ...texts) {
 
     visual.getTextWidth = function (text, opts) {
         let fontSize = opts.font || 0.5;
-        return text.length * fontSize * 0.4; // approximate width
+        return text.length * fontSize * 0.6; // approximate width
     };
     let totalHeight = texts.length * opt.font;
 
