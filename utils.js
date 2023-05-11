@@ -121,7 +121,10 @@ function loadBuildplan(room, plan) {
             const pos = new RoomPosition(x, y, room.name)
             const objectsAtPos = pos.lookFor(LOOK_CONSTRUCTION_SITES).concat(pos.lookFor(LOOK_STRUCTURES));
             if (objectsAtPos.length === 0) {
-                room.createConstructionSite(pos.x, pos.y, global[MSG_STRUCT[structType]]);
+                let res = room.createConstructionSite(pos.x, pos.y, global[MSG_STRUCT[structType]]);
+                if (res !== OK){
+                    console.log(`createConstructionSite ${MSG_ERR[res]}`)
+                }
             }
         }
     }
