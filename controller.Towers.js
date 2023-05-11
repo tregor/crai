@@ -42,12 +42,11 @@ const towerController = {
                     }
                 }
 
-                // Чиним здания
+                // Чиним сначала свои здания
                 if (energyPercentage >= config.towerPercentToRepair){
-                    const damagedStructures = tower.room.find(FIND_STRUCTURES, {
+                    const damagedStructures = tower.room.find(FIND_MY_STRUCTURES, {
                         filter: (s) =>
                         s.hits < s.hitsMax
-                        && s.structureType !== STRUCTURE_WALL
                     });
                     if (damagedStructures && energyPercentage >= 0.8) {
                         damagedStructures.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
