@@ -50,9 +50,10 @@ module.exports = {
                 }
             });
             const containers = creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (structure.structureType === STRUCTURE_CONTAINER && structure.store[RESOURCE_ENERGY] >= creep.store.getFreeCapacity(RESOURCE_ENERGY));
-                }
+                filter: (structure) => {return (
+                        (structure.structureType === STRUCTURE_CONTAINER || structure.structureType === STRUCTURE_STORAGE)
+                        && structure.store[RESOURCE_ENERGY] > 0
+                        );}
             });
 
             if (containers.length) {

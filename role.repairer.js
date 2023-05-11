@@ -49,9 +49,10 @@ module.exports = {
         } else {
             // Если крип не несет ресурс
             const containers = creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (structure.structureType === STRUCTURE_CONTAINER && structure.store[RESOURCE_ENERGY] > 0);
-                }
+                filter: (structure) => {return (
+                    (structure.structureType === STRUCTURE_CONTAINER || structure.structureType === STRUCTURE_STORAGE)
+                        && structure.store[RESOURCE_ENERGY] > 0
+                        );}
             });
             const resources_droped = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 8, {
                 filter: (resource) => {
