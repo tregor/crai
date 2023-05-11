@@ -23,7 +23,7 @@ const towerController = {
 
 
                 // Атака врагов
-                if (energyPercentage >= 0.1){
+                if (energyPercentage >= config.towerPercentToAttack){
                     const closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
                     if (closestHostile && energyPercentage >= 0.1) {
                         tower.attack(closestHostile);
@@ -32,7 +32,7 @@ const towerController = {
                 }
 
                 // Лечим крипов
-                if (energyPercentage >= 0.2){
+                if (energyPercentage >= config.towerPercentToHeal){
                     const closestDamagedFriendly = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
                         filter: (c) => c.hits < c.hitsMax
                     });
@@ -42,19 +42,21 @@ const towerController = {
                     }
                 }
 
-                // Чиним крипов TODO REDO only structures allowed
-                if (energyPercentage >= 0.4){
-//                    const brokenCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
-//                        filter: (creep) => creep.ticksToLive < 1500 * 0.4 //1500 max ttl
-//                    && creep.memory.tier >= 4
-//                    });
-//                    if (brokenCreep) {
-//                        tower.repair(brokenCreep);
-//                    }
+                // Чиним здания
+                if (energyPercentage >= config.towerPercentToRepair){
+                    const damagedStructures = tower.room.find(FIND_STRUCTURES, {
+                        filter: (s) =>
+                        s.hits < s.hitsMax
+                        && s.structureType !== STRUCTURE_WALL
+                    });
+                    if (damagedStructures && energyPercentage >= 0.8) {
+                        damagedStructures.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
+                        tower.repair(damagedStructures[0]);
+                    }
                 }
 
                 // Чиним здания
-                if (energyPercentage >= 0.6){
+                if (energyPercentage >= config.towerPercentToRepair){
                     const damagedStructures = tower.room.find(FIND_STRUCTURES, {
                         filter: (s) =>
                         s.hits < s.hitsMax
