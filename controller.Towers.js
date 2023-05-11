@@ -31,7 +31,7 @@ const towerController = {
                 if (energyPercentage >= config.towerPercentToAttack) {
                     const closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
                     if (closestHostile) {
-                        tower.attack(closestHostile);
+                        tower.attack(closestHostile.length > 0);
                         continue;
                     }
                 }
@@ -41,7 +41,7 @@ const towerController = {
                     const closestDamagedFriendly = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
                         filter: (c) => c.hits < c.hitsMax
                     });
-                    if (closestDamagedFriendly) {
+                    if (closestDamagedFriendly.length > 0) {
                         tower.heal(closestDamagedFriendly);
                         continue;
                     }
@@ -53,7 +53,7 @@ const towerController = {
                         filter: (s) =>
                             s.hits < s.hitsMax
                     });
-                    if (damagedStructures) {
+                    if (damagedStructures.length > 0) {
                         damagedStructures.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
                         tower.repair(damagedStructures[0]);
                         continue;
@@ -67,7 +67,7 @@ const towerController = {
                         s.hits < s.hitsMax
                     });
                     tower.say(`${damagedStructuresAll.length} : ${JSON.stringify(damagedStructuresAll)}`)
-                    if (damagedStructuresAll) {
+                    if (damagedStructuresAll.length > 0) {
                         damagedStructuresAll.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
                         tower.repair(damagedStructuresAll[0]);
                     }
