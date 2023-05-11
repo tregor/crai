@@ -19,7 +19,7 @@ const towerController = {
                 const energyCapacityAvailable = room.energyCapacityAvailable;
                 // const energyPercentage = energyAvailable / energyCapacityAvailable;
                 const energyPercentage = tower.store[RESOURCE_ENERGY] / tower.store.getCapacity(RESOURCE_ENERGY);
-                tower.say(energyPercentage.toFixed(2) + '%')
+                tower.say((energyPercentage * 100).toFixed(2) + '%')
 
                 // Автоматическое включение и выключение башни
                 if (energyPercentage < config.towerPercentToAttack) {
