@@ -53,7 +53,6 @@ const towerController = {
                         filter: (s) =>
                             s.hits < s.hitsMax
                     });
-                    tower.say(`${damagedStructures.length} : ${JSON.stringify(damagedStructures)}`)
                     if (damagedStructures) {
                         damagedStructures.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
                         tower.repair(damagedStructures[0]);
@@ -67,6 +66,7 @@ const towerController = {
                         filter: (s) =>
                         s.hits < s.hitsMax
                     });
+                    tower.say(`${damagedStructures.length} : ${JSON.stringify(damagedStructures)}`)
                     if (damagedStructures) {
                         damagedStructures.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
                         tower.repair(damagedStructures[0]);
