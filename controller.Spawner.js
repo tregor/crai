@@ -95,7 +95,7 @@ const spawnerController = {
             //""" Главная логика спавнов и добавления в очереди
 
             // Добавляем рабочего на 1 место очереди спавна если у нас нет рабочих
-            if (roleCounts['worker'] === 0 && energyAvailable >= 200 && energyQueued === 0) {
+            if (roleCounts['worker'] === 0 && energyAvailable >= 200 && room.energyCapacityAvailable <= 300 && energyQueued === 0) {
                 spawn.memory.spawnQueue.unshift({role: 'worker', tier: 1});
                 continue;
             }

@@ -127,7 +127,7 @@ module.exports = {
         const haulers = _.filter(room.find(FIND_MY_CREEPS), (creep) => creep.memory.role === this.roleName);
         const resources = _.filter(room.find(FIND_DROPPED_RESOURCES), (resource) => resource.resourceType === RESOURCE_ENERGY);
         const energyDropped = _.sum(resources, (r) => (r.amount));
-        const roomEnergy = room.energyAvailable / room.energyAvailableCapacity;
+        const roomEnergy = room.energyAvailable / room.energyCapacityAvailable;
 
         if (energyDropped < 10) {
             return 1;
