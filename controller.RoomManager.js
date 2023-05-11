@@ -81,7 +81,7 @@ const RoomManager = {
             }
 
             // 5. Чтение билд планов из файла:
-            if (config.buildplan && Object.keys(config.buildplan).length > 0) {
+            if (confi.buildplannerOn && config.buildplan && Object.keys(config.buildplan).length > 0) {
                 utils.loadBuildplan(room, config.buildplan);
             }
 
