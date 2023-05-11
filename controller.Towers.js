@@ -66,7 +66,6 @@ const towerController = {
                         filter: (s) =>
                         s.hits < s.hitsMax
                     });
-                    tower.say(`${damagedStructuresAll.length} : ${JSON.stringify(damagedStructuresAll)}`)
                     if (damagedStructuresAll.length > 0) {
                         damagedStructuresAll.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
                         tower.repair(damagedStructuresAll[0]);
