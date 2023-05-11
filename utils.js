@@ -116,6 +116,9 @@ function createDebugVisual(roomName, x, y, ...texts) {
  * to a 2d matrix
  */
 function loadBuildplan(room, plan) {
+    const myConstructionSites = Object.values(Game.constructionSites).filter(site => site.my);
+    if (myConstructionSites.length > 100) return;
+
     for (const [structType, positions] of Object.entries(plan.buildings)) {
         for (const {x,y} of positions['pos']) {
             const pos = new RoomPosition(x, y, room.name)
