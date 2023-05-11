@@ -22,7 +22,7 @@ const towerController = {
                 tower.say(energyPercentage)
 
                 // Автоматическое включение и выключение башни
-                if (energyPercentage < 0.1) {
+                if (energyPercentage < config.towerPercentToAttack) {
                     continue; // Если энергии меньше 20%, выключаем башню
                 }
 
@@ -48,6 +48,7 @@ const towerController = {
                 }
 
                 // Чиним сначала свои здания
+                tower.say(`${energyPercentage} >= ${config.towerPercentToRepair}`)
                 if (energyPercentage >= config.towerPercentToRepair) {
                     const damagedStructures = tower.room.find(FIND_MY_STRUCTURES, {
                         filter: (s) =>
