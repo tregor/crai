@@ -51,6 +51,7 @@ const towerController = {
                     if (damagedStructures && energyPercentage >= 0.8) {
                         damagedStructures.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
                         tower.repair(damagedStructures[0]);
+                        continue;
                     }
                 }
 
