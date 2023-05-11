@@ -60,6 +60,19 @@ const towerController = {
                     }
                 }
 
+                // Чиним дороги
+                if (energyPercentage >= config.towerPercentToRepair) {
+                    const damagedRoads = tower.room.find(FIND_STRUCTURES, {
+                        filter: (s) =>
+                        s.hits < s.hitsMax
+                        && s.structureType === STRUCTURE_ROAD
+                    });
+                    if (damagedRoads.length > 0) {
+                        damagedRoads.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
+                        tower.repair(damagedRoads[0]);
+                    }
+                }
+
                 // Чиним все остальные структуры
                 if (energyPercentage >= config.towerPercentToRepairAll) {
                     const damagedStructuresAll = tower.room.find(FIND_STRUCTURES, {
