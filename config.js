@@ -9,6 +9,7 @@ module.exports = {
     drawRoadMap: false,
     drawHeatMap: false,
     drawDistMap: false,
+    maxConstructionSites: 90,
     roadThreshold: 20000,
     statsMaxTicks: 600,
     energyPerTier: 200,

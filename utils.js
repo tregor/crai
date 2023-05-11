@@ -117,7 +117,7 @@ function createDebugVisual(roomName, x, y, ...texts) {
  */
 function loadBuildplan(room, plan) {
     const myConstructionSites = Object.values(Game.constructionSites).filter(site => site.my);
-    if (myConstructionSites.length >= 100) return;
+    if (myConstructionSites.length >= config.maxConstructionSites) return;
 
     for (const [structType, positions] of Object.entries(plan.buildings)) {
         for (const {x,y} of positions['pos']) {
