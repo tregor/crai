@@ -13,6 +13,7 @@ module.exports = {
     towerPercentToAttack: 0.1,
     towerPercentToHeal: 0.2,
     towerPercentToRepair: 0.4,
+    towerPercentToRepairAll: 0.8,
     minersPerSource: 1,
     energyPerTiers: {
         1: 200,

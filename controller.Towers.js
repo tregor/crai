@@ -29,7 +29,7 @@ const towerController = {
                 // Атака врагов
                 if (energyPercentage >= config.towerPercentToAttack) {
                     const closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-                    if (closestHostile && energyPercentage >= 0.1) {
+                    if (closestHostile) {
                         tower.attack(closestHostile);
                         continue;
                     }
@@ -40,7 +40,7 @@ const towerController = {
                     const closestDamagedFriendly = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
                         filter: (c) => c.hits < c.hitsMax
                     });
-                    if (closestDamagedFriendly && energyPercentage >= 0.4) {
+                    if (closestDamagedFriendly) {
                         tower.heal(closestDamagedFriendly);
                         continue;
                     }
@@ -52,21 +52,23 @@ const towerController = {
                         filter: (s) =>
                             s.hits < s.hitsMax
                     });
-                    if (damagedStructures && energyPercentage >= 0.8) {
+                    if (damagedStructures) {
                         damagedStructures.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
                         tower.repair(damagedStructures[0]);
                         continue;
                     }
                 }
 
-                // Чиним здания
-                const damagedStructures = tower.room.find(FIND_STRUCTURES, {
-                    filter: (s) =>
+                // Чиним все остальные структуры
+                if (energyPercentage >= config.towerPercentToRepairAll) {
+                    const damagedStructures = tower.room.find(FIND_STRUCTURES, {
+                        filter: (s) =>
                         s.hits < s.hitsMax
-                });
-                if (damagedStructures && energyPercentage >= 0.8) {
-                    damagedStructures.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
-                    tower.repair(damagedStructures[0]);
+                    });
+                    if (damagedStructures) {
+                        damagedStructures.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
+                        tower.repair(damagedStructures[0]);
+                    }
                 }
             }
         }
