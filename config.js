@@ -10,6 +10,10 @@ module.exports = {
     roadThreshold: 20000,
     statsMaxTicks: 600,
     energyPerTier: 200,
+    towerPercentToAttack: 0.1,
+    towerPercentToHeal: 0.2,
+    towerPercentToRepair: 0.4,
+    minersPerSource: 1,
     energyPerTiers: {
         1: 200,
         2: 550,
@@ -17,7 +21,6 @@ module.exports = {
         4: 1200,
         5: 1800,
     },
-    minersPerSource: 1,
     creepsPerTier:
         [1, 2, 3, 5, 7, 11, 13, 17],
     constructionSitePriority: [

@@ -22,8 +22,8 @@ const towerController = {
                 }
 
 
+                // Атака врагов
                 if (energyPercentage >= 0.1){
-                    // Атака врагов
                     const closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
                     if (closestHostile && energyPercentage >= 0.1) {
                         tower.attack(closestHostile);
@@ -31,8 +31,8 @@ const towerController = {
                     }
                 }
 
-                if (energyPercentage >= 0.4){
-                    // Лечим крипов
+                // Лечим крипов
+                if (energyPercentage >= 0.2){
                     const closestDamagedFriendly = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
                         filter: (c) => c.hits < c.hitsMax
                     });
@@ -42,8 +42,8 @@ const towerController = {
                     }
                 }
 
-                if (energyPercentage >= 0.6){
-                    // Чиним крипов TODO REDO only structures allowed
+                // Чиним крипов TODO REDO only structures allowed
+                if (energyPercentage >= 0.4){
 //                    const brokenCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
 //                        filter: (creep) => creep.ticksToLive < 1500 * 0.4 //1500 max ttl
 //                    && creep.memory.tier >= 4
@@ -53,8 +53,8 @@ const towerController = {
 //                    }
                 }
 
-                if (energyPercentage >= 0.8){
-                    // Чиним здания
+                // Чиним здания
+                if (energyPercentage >= 0.6){
                     const damagedStructures = tower.room.find(FIND_STRUCTURES, {
                         filter: (s) =>
                         s.hits < s.hitsMax
