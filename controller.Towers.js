@@ -48,12 +48,12 @@ const towerController = {
                 }
 
                 // Чиним сначала свои здания
-                tower.say(`${energyPercentage} >= ${config.towerPercentToRepair}`)
                 if (energyPercentage >= config.towerPercentToRepair) {
                     const damagedStructures = tower.room.find(FIND_MY_STRUCTURES, {
                         filter: (s) =>
                             s.hits < s.hitsMax
                     });
+                    tower.say(`${damagedStructures.length} : ${JSON.stringify(damagedStructures)}`)
                     if (damagedStructures) {
                         damagedStructures.sort((a, b) => a.hits / a.hitsMax - b.hits / b.hitsMax);
                         tower.repair(damagedStructures[0]);
