@@ -1,8 +1,10 @@
 // https://github.com/ScreepsQuorum/screeps-quorum
 RoomPosition.prototype.serialize = function () {
+    console.log('s1')
     return Room.serializeName(this.roomName) + String.fromCharCode(((this.x * 100) + +this.y) + 200);
 };
 RoomPosition.serialize = function (pos) {
+    console.log('s2')
     return pos.serialize();
 };
 

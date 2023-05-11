@@ -126,7 +126,7 @@ function loadBuildplan(room, plan) {
             if (objectsAtPos.length === 0) {
                 let res = room.createConstructionSite(pos.x, pos.y, global[MSG_STRUCT[structType]]);
                 if (res !== OK && res !== ERR_FULL && res !== ERR_RCL_NOT_ENOUGH){
-                    console.log(`createConstructionSite ${MSG_ERR[res]}`)
+                    console.log(`createConstructionSite ${MSG_ERR[res]} ${pos}`)
                 }
             }
         }
