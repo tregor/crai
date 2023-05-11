@@ -81,7 +81,7 @@ const spawnerController = {
             const controllerRemainSeconds = controllerRemainProgress * 5;
 //            console.log(controllerEnergyPerTick, room.controller.progressTotal, room.controller.progress, controllerRemainProgress)
             utils.createDebugVisual(room.name, spawn.pos.x, spawn.pos.y,
-                                    ` GCL${Game.gcl}, RCL${tier} ${Math.round(room.controller.progress / room.controller.progressTotal * 100)}% (~${utils.formatETA(controllerRemainSeconds)})`,
+                                    ` GCL${Game.gcl.level} ${Math.round(Game.gcl.progress / Game.gcl.progressTotal * 100)}%, RCL${tier} ${Math.round(room.controller.progress / room.controller.progressTotal * 100)}% (~${utils.formatETA(controllerRemainSeconds)})`,
                                     ` NRG: ${energyAvailable}/${room.energyCapacityAvailable} +${energyQueued}`,
                                     ` CPU: ${Math.ceil(cpuUsage/20*100)}% (${cpuUsage.toFixed(2)})`,
                                     ` BOTs: ${myCreeps.length}`,
