@@ -212,7 +212,7 @@ if (!Creep.prototype._moveTo) {
 
         const posKey = `${this.pos.x},${this.pos.y}`;
         if (!this.room.memory) {
-            this.room.memory = {};
+            this.room.memory = {roadUsage: {}};
         }
         if (!this.room.memory.roadUsage[posKey]) {
             this.room.memory.roadUsage[posKey] = 1;
