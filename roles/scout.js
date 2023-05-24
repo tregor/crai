@@ -1,5 +1,7 @@
-const config = require("./config");
-const minClaimSources = 2;
+const config = require('../config');
+const utils = require("../utils");
+
+const minClaimSources = 3;
 module.exports = {
     roleName: 'scout',
     memory: {
@@ -114,7 +116,7 @@ module.exports = {
         return 1; // 0.05 means 5% of effecienty
     },
     getBody: function (tier) {
-        let body = [];
+        const body = [];
         let energy = config.energyPerTiers[tier];
         body.push(CLAIM);
         energy -= BODYPART_COST[CLAIM];

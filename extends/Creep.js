@@ -1,6 +1,6 @@
-const config = require('./config');
-const utils = require("./utils");
-const creepRoles = require('./roles');
+const config = require('../config');
+const utils = require("../utils");
+const creepRoles = require('../roles');
 
 /**
  * Globally patch creep actions to log error codes.
@@ -111,8 +111,8 @@ Creep.prototype.getFullname = function () {
     let labelRole = (role.roleName.charAt(0).toUpperCase() + role.roleName.slice(1));
     return `T${this.memory.tier}${labelRole}`;
 }
-Creep.prototype.sing = function(sentence, public){
-    if(public === undefined)public = true;
+Creep.prototype.sing = function(sentence, toAll){
+    if(toAll === undefined) toAll = true;
     let words = sentence.split("|");
     this.say(words[Game.time % words.length], public);
 }

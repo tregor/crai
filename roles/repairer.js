@@ -1,4 +1,5 @@
-const config = require("./config");
+const config = require('../config');
+const utils = require("../utils");
 
 module.exports = {
     roleName: 'repairer',
@@ -100,13 +101,12 @@ module.exports = {
         return Math.max(energyRatio, 0.1);
     },
     getBody: function (tier) {
-        let body = [];
-        let energyRemain = config.energyPerTiers[tier];
+        const body = [];
 
         // Рассчитываем количество частей тела для каждого типа
-        let workParts = Math.floor(energyRemain / (BODYPART_COST[WORK] + BODYPART_COST[CARRY] + BODYPART_COST[MOVE]));
-        let carryParts = workParts;
-        let moveParts = workParts;
+        let workParts = tier;
+        let carryParts = tier;
+        let moveParts = workParts + carryParts;
 
         // Добавляем части тела в массив body
         for (let i = 0; i < workParts; i++) {

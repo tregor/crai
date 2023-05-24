@@ -1,11 +1,15 @@
-require('extends.ConstructionSite');
-require('extends.Creep');
-require('extends.Room');
-require('extends.RoomObject');
-require('extends.RoomPosition');
-require('extends.Source');
-require('extends.Structure');
-require('extends.StructureObserver');
+const config = require("config");
+const utils = require("utils");
+const creepRoles = require("roles");
+
+require('extends/ConstructionSite');
+require('extends/Creep');
+require('extends/Room');
+require('extends/RoomObject');
+require('extends/RoomPosition');
+require('extends/Source');
+require('extends/Structure');
+require('extends/StructureObserver');
 
 // Инициализация объекта статистики для текущего тика
 if (!Memory.stats) {

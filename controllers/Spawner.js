@@ -1,7 +1,7 @@
-const creepRoles = require("./roles");
-const utils = require("./utils");
-const config = require("./config");
-const {addStat} = require("./utils");
+const config = require('../config');
+const utils = require("../utils");
+const creepRoles = require('../roles');
+const energyReqForCreep = utils.energyReqForCreep;
 
 const spawnerController = {
     run: function () {
@@ -14,25 +14,27 @@ const spawnerController = {
             let energyAvailable = room.energyAvailable;
             let energyQueued = _.sum(spawn.memory.spawnQueue, (creep) => energyReqForCreep(creep.role, creep.tier));
 
+            spawn.memory.debugFull = {};
+
             let roleCounts = {};
+            let roleQueue = {};
             for (const roleName in creepRoles){
                 if (!roleCounts[roleName]) {
                     roleCounts[roleName] = 0;
+                    roleQueue[roleName] = 0;
                 }
             }
             for (const name in myCreeps) {
                 const creep = myCreeps[name];
-                if (!roleCounts[creep.memory.role]) {
-                    roleCounts[creep.memory.role] = 1;
-                } else {
-                    roleCounts[creep.memory.role]++;
-                }
+                roleCounts[creep.memory.role]++;
             }
-            spawn.memory.debugFull = roleCounts;
+            for (const init_creep in spawn.memory.spawnQueue) {
+                roleQueue[spawn.memory.spawnQueue[init_creep]['role']]++;
+            }
+            spawn.memory.debugFull = [roleCounts];
 
 
             if (room.energyCapacityAvailable < config.energyPerTiers[tier]) {
-//                console.log(`Downgrade T${tier}=>T${tier - 1}`)
                 tier = tier - 1;
             }
 
@@ -51,7 +53,6 @@ const spawnerController = {
                     }
                 }
             }
-//             console.log(Object.keys(creepRoles), Object.keys(creepRolesAvailable));
 
 
             // Создаем очередь спавна, если ее еще нет
@@ -84,41 +85,42 @@ const spawnerController = {
                                     ` GCL${Game.gcl.level} ${Math.round(Game.gcl.progress / Game.gcl.progressTotal * 100)}%, RCL${tier} ${Math.round(room.controller.progress / room.controller.progressTotal * 100)}% (~${utils.formatETA(controllerRemainSeconds)})`,
                                     ` NRG: ${energyAvailable}/${room.energyCapacityAvailable} +${energyQueued}`,
                                     ` CPU: ${Math.ceil(cpuUsage/20*100)}% (${cpuUsage.toFixed(2)})`,
-                                    ` BOTs: ${myCreeps.length}`,
+                ` BOTs: ${myCreeps.length}`,
+                ` ${JSON.stringify(roleCounts)}`,
             );
-            if (spawn.memory.debugFull) {
-                utils.createDebugVisual(room.name, spawn.pos.x, spawn.pos.y + 1,
-                    JSON.stringify(spawn.memory.debugFull),
-                );
-            }
+
+
+
+
+
+
 
             //""" Главная логика спавнов и добавления в очереди
 
             // Добавляем рабочего на 1 место очереди спавна если у нас нет рабочих
-            if ((roleCounts['worker'] === 0 || myCreeps.length === 0) && energyAvailable >= 200 && energyQueued === 0) {
-                spawn.memory.spawnQueue.unshift({role: 'worker', tier: 1});
+            if (roleCounts['worker'] === 0 && roleQueue['worker'] === 0) {
+                while(energyAvailable < energyReqForCreep('worker', tier)){
+                    tier -= 1;
+                }
+                spawn.memory.spawnQueue.unshift({role: 'worker', tier: tier}); //Unshift to set of 1st place
                 continue;
             }
             // Не делать ничего если энергии недостаточно для спавна
-            if (energyAvailable - energyQueued < maxEnergyReq) {
-                continue;
-            }
+            // if (energyAvailable - energyQueued < maxEnergyReq) {
+            //     continue;
+            // }
 
             // Get total number of required creeps for each role
             for (const roleName in creepRolesAvailable) {
                 const role = creepRoles[roleName];
                 const existingCount = roleCounts[roleName] || 0;
                 const successRate = Math.max(role.getSuccessRate(spawn.room) || 0, 0.1);
-                const roleWeight = role.weight || 1; // Default weight is 1
-                // let desiredCount = Math.min(Math.max(calculateRequiredCreeps(existingCount, successRate) * roleWeight, 1), config.creepsPerTier[tier - 1]);
                 let desiredCount = Math.min(Math.ceil(Math.max(existingCount, 0.01) / successRate), tier);
                 let energyRequired = energyReqForCreep(roleName, tier);
                 let roleTier = Math.min(Math.ceil(tier * energyAvailable / energyRequired), tier);
-//                spawn.memory.debugFull.push(`${role.name} e:${existingCount} s:${successRate} d:${desiredCount} n:${energyRequired}`);
 
                 let alreadyQueued = _.sum(spawn.memory.spawnQueue, {filter: (creep) => creep.role === roleName && creep.tier === roleTier});
                 const spawnCount = desiredCount - existingCount - alreadyQueued;
-//                console.log(roleName,successRate, spawnCount, energyAvailable, energyQueued, energyRequired)
                 for (let i = 0; i < spawnCount; i++) {
                     if (energyAvailable - energyQueued >= energyRequired) {
                         addToSpawnQueue(spawn, role.roleName, roleTier, 1);
@@ -138,27 +140,6 @@ function addToSpawnQueue(spawn, roleName, tier, count) {
     }
     utils.addStat(`rooms.${spawn.room.name}.creepsSpawned`, count)
 }
-
-function calculateRequiredCreeps(existingCount, efficiency) {
-    if (efficiency <= 0) {
-        return 0;
-    }
-
-    return Math.ceil(existingCount / (efficiency));
-}
-
-function energyReqForCreep(roleName, tier = 1) {
-    const role = creepRoles[roleName];
-    const body = role.getBody(tier);
-    let cost = 0;
-
-    for (let i = 0; i < body.length; i++) {
-        cost += BODYPART_COST[body[i]];
-    }
-    return cost;
-}
-
-
 function spawnRole(spawn, role, tier) {
     if (spawn.spawning) {
         return ERR_BUSY;

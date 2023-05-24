@@ -1,11 +1,11 @@
-const roomManager = require('./controller.RoomManager');
-const spawnController = require('./controller.Spawner');
-const creepsController = require('./controller.Creeps');
-const towerController = require('./controller.Towers');
+const roomManager = require('controllers/RoomManager');
+const spawnController = require('controllers/Spawner');
+const creepsController = require('controllers/Creeps');
+const towerController = require('controllers/Towers');
 
-const config = require('./config');
-const utils = require("./utils");
-const creepRoles = require('./roles');
+const config = require("config");
+const utils = require("utils");
+const creepRoles = require("roles");
 
 require('main-init');
 module.exports = {

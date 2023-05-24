@@ -1,13 +1,13 @@
 const roles = {
-    miner: require('role.miner'),
-    hauler: require('role.hauler'),
-    builder: require('role.builder'),
-    repairer: require('role.repairer'),
+    miner: require('roles/miner'),
+    hauler: require('roles/hauler'),
+    builder: require('roles/builder'),
+    // repairer: require('roles/repairer'),
 
-    worker: require('role.worker'),
+    worker: require('roles/worker'),
 
-    defender: require('role.defender'),
-    scout: require('role.scout'),
+    defender: require('roles/defender'),
+    // scout: require('roles/scout'),
 
     // добавляем сюда другие роли
 };

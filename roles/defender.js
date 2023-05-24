@@ -1,4 +1,5 @@
-const config = require("./config");
+const config = require('../config');
+const utils = require("../utils");
 
 module.exports = {
     roleName: 'defender',
@@ -33,10 +34,10 @@ module.exports = {
     getSuccessRate: function (room) {
         const enemies = room.find(FIND_HOSTILE_CREEPS);
         const defenders = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'defender'}}});
-        return (defenders.length / (enemies.length + 1));
+        return ((defenders.length / (enemies.length + 1)) && room.hasHostile());
     },
     getBody: function (tier = 1) {
-        let body;
+        let body = [];
         if (tier <= 2) {
             body = [TOUGH, TOUGH, MOVE, MOVE, ATTACK, ATTACK];
         } else if (tier <= 4) {

@@ -1,8 +1,8 @@
-const config = require('./config');
-const utils = require('./utils');
-const creepRoles = require('./roles');
+const config = require('../config');
+const utils = require("../utils");
+const creepRoles = require('../roles');
 
-require('controller.Tasker');
+// require('../controllers/Tasker');
 
 const RoomManager = {
     run: function () {
@@ -37,8 +37,7 @@ const RoomManager = {
 
             // 1. Активировать безопасный режим, если доступен, когда контроллер получает слишком много урона.
             // 2. Определить, если комната находится в аварийном состоянии, и задать соответствующий флаг.
-            room.memory.isFight = (room.find(FIND_HOSTILE_CREEPS).length > 0 || room.find(FIND_HOSTILE_STRUCTURES).length > 0);
-            if (room.memory.isFight && room.controller && room.controller.safeModeAvailable && room.controller.safeModeCooldown === 0 && (room.controller.hits / room.controller.hitsMax < 0.02)) {
+            if (room.hasHostile() && room.controller && room.controller.safeModeAvailable && room.controller.safeModeCooldown === 0 && (room.controller.hits / room.controller.hitsMax < 0.02)) {
                 room.controller.activateSafeMode();
             }
 

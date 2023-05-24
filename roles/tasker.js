@@ -1,4 +1,6 @@
-const config = require("./config");
+const config = require('../config');
+const utils = require("../utils");
+
 module.exports = {
     roleName: 'default',
     memory: {

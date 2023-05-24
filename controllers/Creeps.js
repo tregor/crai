@@ -1,13 +1,6 @@
-const config = require('./config');
-const utils = require("./utils");
-const creepRoles = require('./roles');
-
-
-require('extends.ConstructionSite');
-require('extends.Creep');
-require('extends.Room');
-require('extends.RoomPosition');
-require('extends.Structure');
+const config = require('../config');
+const utils = require("../utils");
+const creepRoles = require('../roles');
 
 const controllerCreeps = {
     run: function () {

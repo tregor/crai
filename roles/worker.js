@@ -1,6 +1,7 @@
-const config = require("./config");
-const roleHauler = require("./role.hauler");
-const roleBuilder = require("./role.builder");
+const config = require('../config');
+const utils = require("../utils");
+const roleHauler = require("../roles/hauler");
+const roleBuilder = require("../roles/builder");
 
 module.exports = {
     roleName: 'worker',
@@ -61,19 +62,6 @@ module.exports = {
                 }
             }
 
-            // Charge towers
-            const towers = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (structure.structureType === STRUCTURE_TOWER) &&
-                            structure.store.getFreeCapacity(RESOURCE_ENERGY) > creep.store.getCapacity(RESOURCE_ENERGY);
-                }
-            });
-            if (towers) {
-                creep.say("Tower");
-                creep.moveToAndPerform(towers, 'transfer', RESOURCE_ENERGY);
-                return;
-            }
-
             // Charge controller untill max LVL
             if (creep.room.controller.level < 8) {
                 creep.moveToAndPerform(creep.room.controller, 'transfer', RESOURCE_ENERGY);
@@ -83,6 +71,9 @@ module.exports = {
             creep.moveTo(config.defaultSpawn);
         } else {
             // Если крип не несет ресурс
+            const haulers = creep.room.find(FIND_MY_CREEPS, {filter: (creep) => creep.memory.role === 'hauler'});
+            const miners = creep.room.find(FIND_MY_CREEPS, {filter: (creep) => creep.memory.role === 'miner'});
+
             const sources = creep.room.find(FIND_SOURCES_ACTIVE, {
                 filter: (source) => {
                     const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
@@ -112,18 +103,19 @@ module.exports = {
                 }
             }
             if (resources_droped.length) {
-                resources_droped.sort((a, b) => a.amount - b.amount); // Sort by most progress first
-                let nearest = creep.pos.findClosestByRange(resources_droped.slice(0, 10));
+                let nearest = creep.pos.findClosestByRange(resources_droped);
                 if (creep.moveToAndPerform(nearest, 'pickup', RESOURCE_ENERGY) === OK) {
                     return;
                 }
             }
-            if (sources.length) {
+            if (sources.length && (haulers.length === 0 || miners.length === 0)) {
                 let nearest = creep.pos.findClosestByRange(sources);
                 if (creep.moveToAndPerform(nearest, 'harvest', RESOURCE_ENERGY) === OK) {
                     return;
                 }
             }
+
+            //If nothing to take but have cargo - go fucking work
             if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
                 creep.memory.transporting = true;
             }
@@ -132,50 +124,56 @@ module.exports = {
             creep.moveTo(config.flagIdle)
         }
     },
-
-
     getSuccessRate: function (room) {
-        const numWorkers = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'worker'}}}).length;
-        return (numWorkers / config.creepsPerTier[room.controller.level]);
+        const workers = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'worker'}}});
+        const numWorkers = workers.length;
+        const maxWorkers = config.creepsPerTier[room.controller.level];
 
-        const numResources = room.find(FIND_DROPPED_RESOURCES, {filter: {resourceType: RESOURCE_ENERGY}}).length;
-        const numBuilders = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'builder'}}}).length;
-        const numConstructionSites = room.find(FIND_CONSTRUCTION_SITES).length;
+        const resources = room.find(FIND_DROPPED_RESOURCES, {filter: {resourceType: RESOURCE_ENERGY}});
+        const numResources = resources.length;
+
+        const constructionSites = room.find(FIND_CONSTRUCTION_SITES);
+        const numConstructionSites = constructionSites.length;
+
         const haulers = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'hauler'}}});
         const numHaulers = haulers.length;
-        const haulerTargets = room.find(FIND_STRUCTURES, {
-            filter: (structure) => {
-                return (structure.structureType === STRUCTURE_EXTENSION ||
-                        structure.structureType === STRUCTURE_SPAWN ||
-                        structure.structureType === STRUCTURE_TOWER) &&
-                    structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-            }
-        });
-        const numHaulerTargets = (haulerTargets.length + numResources) / 2;
 
+        const builders = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'builder'}}});
+        const numBuilders = builders.length;
 
-        let successRate = 1;
-        if (numHaulers < numHaulerTargets && numHaulers > 0) {
-            successRate = successRate * (numWorkers / (numHaulerTargets - numHaulers));
-        }
-        if (numBuilders < numConstructionSites && numBuilders > 0) {
-            successRate = successRate * (numWorkers / (numConstructionSites - numBuilders));
-        }
-        if (numBuilders === 0 || numHaulers === 0) {
-            successRate = successRate * (numWorkers / (numResources + numConstructionSites));
+        // Calculate the efficiency of workers in terms of hauling and building
+        let haulingEfficiency = 0;
+        let buildingEfficiency = 0;
+
+        if (numHaulers > 0) {
+            haulingEfficiency = Math.min(numWorkers / numHaulers, 1);
+        } else if (numResources > 0) {
+            haulingEfficiency = Math.min(numWorkers / numResources, 1);
+        } else {
+            haulingEfficiency = 1;
         }
 
-        return successRate * 4;
+        if (numBuilders > 0) {
+            buildingEfficiency = Math.min(numWorkers / numBuilders, 1);
+        } else if (numConstructionSites > 0) {
+            buildingEfficiency = Math.min(numWorkers / numConstructionSites, 1);
+        } else {
+            buildingEfficiency = 1;
+        }
 
+        // Calculate the overall success rate
+        const successRate = (haulingEfficiency + buildingEfficiency) / 2;
+
+        // Adjust the success rate based on the number of workers compared to the maximum number of workers
+        return Math.min(successRate * (numWorkers / maxWorkers), 1);
     },
     getBody: function (tier) {
-        let body = [];
-        let energyRemain = config.energyPerTiers[tier];
+        const body = [];
 
         // Рассчитываем количество частей тела для каждого типа
-        let workParts = Math.floor(energyRemain / (BODYPART_COST[WORK] + BODYPART_COST[CARRY] + BODYPART_COST[MOVE]));
-        let carryParts = workParts;
-        let moveParts = workParts;
+        let workParts = tier;
+        let carryParts = tier;
+        let moveParts = workParts + carryParts;
 
         // Добавляем части тела в массив body
         for (let i = 0; i < workParts; i++) {

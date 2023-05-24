@@ -1,4 +1,6 @@
-const config = require("./config");
+const config = require('../config');
+const utils = require("../utils");
+
 module.exports = {
     roleName: 'hauler',
     memory: {
@@ -29,6 +31,19 @@ module.exports = {
             });
             if (extensions.length) {
                 creep.moveToAndPerform(creep.pos.findClosestByRange(extensions), 'transfer', RESOURCE_ENERGY);
+                return;
+            }
+
+            // Find links and fill them
+            const links = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (
+                            structure.structureType === STRUCTURE_LINK)
+                        && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                }
+            });
+            if (links.length) {
+                creep.moveToAndPerform(creep.pos.findClosestByRange(links), 'transfer', RESOURCE_ENERGY);
                 return;
             }
             
@@ -86,7 +101,10 @@ module.exports = {
             // Dropped resources
             let roomDropped = creep.room.find(FIND_DROPPED_RESOURCES, {
                 filter: (resource) => {
-                    return resource.resourceType === RESOURCE_ENERGY && resource.amount > (creep.store.getFreeCapacity(RESOURCE_ENERGY) * 0.2);
+                    const creepsAround = resource.pos.findInRange(FIND_MY_CREEPS, 2, {
+                        filter: (c) => c.id !== creep.id // Exclude self from nearby creeps
+                    }); // Check for nearby haulers
+                    return resource.resourceType === RESOURCE_ENERGY && resource.amount > (creep.store.getFreeCapacity(RESOURCE_ENERGY) * 0.0);
                 }
             });
             if (roomDropped.length > 0) {
@@ -143,18 +161,21 @@ module.exports = {
     /** @param {number} tier **/
     getBody: function (tier) {
         const body = [];
-        let energy = config.energyPerTiers[tier];
 
-        const carryParts = Math.floor((energy / 2) / BODYPART_COST[CARRY]); // максимальное количество CARRY частей
-        const moveParts = Math.ceil((carryParts * 2) / 3); // количество MOVE частей, которые нужны, чтобы сохранить скорость передвижения на уровне 1 клетки в тик
-        const maxWeight = carryParts * CARRY_CAPACITY;
+        // Рассчитываем количество частей тела для каждого типа
+        const workParts = 1;
+        const carryParts = tier;
+        const moveParts = workParts + carryParts;
 
-        for (let i = 0; i < moveParts; i++) {
-            body.push(MOVE);
+        // Добавляем части тела в массив body
+        for (let i = 0; i < workParts; i++) {
+            body.push(WORK);
         }
-
         for (let i = 0; i < carryParts; i++) {
             body.push(CARRY);
+        }
+        for (let i = 0; i < moveParts; i++) {
+            body.push(MOVE);
         }
 
         return body;

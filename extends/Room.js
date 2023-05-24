@@ -1,3 +1,5 @@
+const config = require('../config');
+
 // https://github.com/ScreepsQuorum/screeps-quorum
 const unicodeModifier = 200;
 const quadrantMap = {
@@ -81,4 +83,20 @@ Room.prototype.describe = function() {
 	else {
         return ROOM_STANDARD
     }
+}
+
+Room.prototype.hasHostile = function(){
+    return (this.find(FIND_HOSTILE_CREEPS).length > 0 || this.find(FIND_HOSTILE_STRUCTURES).length > 0);
+}
+
+Room.prototype.findFreeSources = function() {
+    return this.find(FIND_SOURCES_ACTIVE, {
+        filter: (source) => {
+            const miners = _.filter(Game.creeps, (miner) =>
+                miner.memory.role === 'miner'
+                && miner.memory.sourceId === source.id
+            );
+            return ((miners.length < config.minersPerSource) && !source.room.hasHostile() && (source.energy > 0));
+        }
+    });
 }

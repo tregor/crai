@@ -1,6 +1,6 @@
-const config = require('./config');
-const utils = require('./utils');
-const creepRoles = require('./roles');
+const config = require('../config');
+const utils = require("../utils");
+const creepRoles = require('../roles');
 
 const towerController = {
     run: function () {

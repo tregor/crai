@@ -1,7 +1,17 @@
-const config = require('./config');
+const config = require('config');
 
 
+function energyReqForCreep(roleName, tier = 1) {
+    const creepRoles = require('roles');
+    const role = creepRoles[roleName];
+    const bodyCr = role.getBody(tier);
 
+    let cost = 0;
+    for (let i = 0; i < bodyCr.length; i++) {
+        cost += BODYPART_COST[bodyCr[i]];
+    }
+    return cost;
+}
 function setStat(path, value) {
     _.set(Memory.stats.ticks[Game.time], path, value);
 }
@@ -431,4 +441,5 @@ module.exports = {
     loadBuildplan,
     drawRoadUsage,
     drawDistanceTransform,
+    energyReqForCreep,
 };
