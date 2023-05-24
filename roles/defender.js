@@ -34,7 +34,8 @@ module.exports = {
     getSuccessRate: function (room) {
         const enemies = room.find(FIND_HOSTILE_CREEPS);
         const defenders = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'defender'}}});
-        return ((defenders.length / (enemies.length + 1)) && room.hasHostile());
+        if (!room.hasHostile()) return 1;
+        return (defenders.length / (enemies.length + 1));
     },
     getBody: function (tier = 1) {
         let body = [];
