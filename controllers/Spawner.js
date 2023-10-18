@@ -103,24 +103,20 @@ const spawnerController = {
                     tier -= 1;
                 }
                 spawn.memory.spawnQueue.unshift({role: 'worker', tier: tier}); //Unshift to set of 1st place
-                continue;
+                return;
             }
-            // Не делать ничего если энергии недостаточно для спавна
-            // if (energyAvailable - energyQueued < maxEnergyReq) {
-            //     continue;
-            // }
 
             // Get total number of required creeps for each role
             for (const roleName in creepRolesAvailable) {
                 const role = creepRoles[roleName];
                 const existingCount = roleCounts[roleName] || 0;
                 const successRate = Math.max(role.getSuccessRate(spawn.room) || 0, 0.1);
-                let desiredCount = Math.min(Math.ceil(Math.max(existingCount, 0.01) / successRate), tier);
+                let desiredCount = Math.floor(existingCount / successRate);
                 let energyRequired = energyReqForCreep(roleName, tier);
-                let roleTier = Math.min(Math.ceil(tier * energyAvailable / energyRequired), tier);
-
+                let roleTier = Math.min(Math.floor(tier * energyAvailable / energyRequired), tier);
                 let alreadyQueued = _.sum(spawn.memory.spawnQueue, {filter: (creep) => creep.role === roleName && creep.tier === roleTier});
                 const spawnCount = desiredCount - existingCount - alreadyQueued;
+                // console.log(`${roleName} ${spawnCount} ${desiredCount} - ${existingCount} - ${alreadyQueued}`)
                 for (let i = 0; i < spawnCount; i++) {
                     if (energyAvailable - energyQueued >= energyRequired) {
                         addToSpawnQueue(spawn, role.roleName, roleTier, 1);

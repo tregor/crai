@@ -7,7 +7,7 @@ const roles = {
     worker: require('roles/worker'),
 
     defender: require('roles/defender'),
-    // scout: require('roles/scout'),
+    scout: require('roles/scout'),
 
     // добавляем сюда другие роли
 };

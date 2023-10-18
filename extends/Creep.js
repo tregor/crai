@@ -5,37 +5,13 @@ const creepRoles = require('../roles');
 /**
  * Globally patch creep actions to log error codes.
  */
-[
-    "attack",
-    "attackController",
-    "build",
-    "claimController",
-    "dismantle",
-    "drop",
-    "generateSafeMode",
-    "harvest",
-    "heal",
-    "move",
-    "moveByPath",
-    "moveTo",
-    "pickup",
-    "rangedAttack",
-    "rangedHeal",
-    "rangedMassAttack",
-    "repair",
-    "reserveController",
-    "signController",
-    "suicide",
-    "transfer",
-    "upgradeController",
-    "withdraw"
-].forEach(function(method) {
+["attack", "attackController", "build", "claimController", "dismantle", "drop", "generateSafeMode", "harvest", "heal", "move", "moveByPath", "moveTo", "pickup", "rangedAttack", "rangedHeal", "rangedMassAttack", "repair", "reserveController", "signController", "suicide", "transfer", "upgradeController", "withdraw"].forEach(function (method) {
     let original = Creep.prototype[method];
     // Magic
-    Creep.prototype[method] = function() {
+    Creep.prototype[method] = function () {
         let status = original.apply(this, arguments);
         if (typeof status === "number" && status < 0) {
-//            console.log(`${this.name} ${method} failed: ${MSG_ERR[status]} at ${this.pos}`);
+            // console.log(`${this.name}.${method}(` + Array.from(arguments).join(", ") + `) failed: ${MSG_ERR[status]} at ${this.pos}`);
         }
         return status;
     };
@@ -46,17 +22,16 @@ const creepRoles = require('../roles');
  *
  * @type {int}
  */
-if (typeof Creep.prototype.idleFor !== 'function'){
+if (typeof Creep.prototype.idleFor !== 'function') {
     Object.defineProperty(Creep.prototype, "idle", {
-        get: function() {
+        get: function () {
             if (this.memory.idle === undefined) return 0;
             if (this.memory.idle <= Game.time) {
                 this.idle = undefined;
                 return 0;
             }
             return this.memory.idle;
-            },
-       set: function(val) {
+        }, set: function (val) {
             if (!val && this.memory.idle) {
                 delete this.memory.idle;
             } else {
@@ -64,7 +39,7 @@ if (typeof Creep.prototype.idleFor !== 'function'){
             }
         }
     });
-    Creep.prototype.idleFor = function(ticks = 0) {
+    Creep.prototype.idleFor = function (ticks = 0) {
         if (ticks > 0) {
             this.idle = Game.time + ticks;
         } else {
@@ -111,8 +86,8 @@ Creep.prototype.getFullname = function () {
     let labelRole = (role.roleName.charAt(0).toUpperCase() + role.roleName.slice(1));
     return `T${this.memory.tier}${labelRole}`;
 }
-Creep.prototype.sing = function(sentence, toAll){
-    if(toAll === undefined) toAll = true;
+Creep.prototype.sing = function (sentence, toAll) {
+    if (toAll === undefined) toAll = true;
     let words = sentence.split("|");
     this.say(words[Game.time % words.length], public);
 }
@@ -124,38 +99,26 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
     const color = str => '#' + new Array(3).fill().map((_, i) => Math.floor(((this.getFullname().split('').reduce((a, b) => (((a << 5) - a) + b.charCodeAt(0)) & 0xFF), 0) >> (i * 8)) / 2 + 128).toString(16).padStart(2, '0')).join('');
     const nrgStore = this.store.getFreeCapacity(RESOURCE_ENERGY);
     let nrgTarget = 0;
-    if (target.store){
+    if (target.store) {
         nrgTarget = target.store.getFreeCapacity(RESOURCE_ENERGY) || 0;
     }
-    if (target instanceof StructureController){
+    if (target instanceof StructureController) {
         nrgTarget = target.progress;
     }
 
     const moveOpts = {
-        noPathFinding: (Game.cpu.getUsed() >= 20),
-        reusePath: 16,
-        visualizePathStyle: {
-            fill: undefined,
-            opacity: 0.6,
-            stroke: color,
-            strokeWidth: 0.04,
-            lineStyle: 'dotted',
+        noPathFinding: (Game.cpu.getUsed() >= 20), reusePath: 16, visualizePathStyle: {
+            fill: undefined, opacity: 0.6, stroke: color, strokeWidth: 0.04, lineStyle: 'dotted',
         },
 
-        ignoreCreeps: false,
-        ignoreDestructibleStructures: false,
-        ignoreRoads: false,
+        ignoreCreeps: false, ignoreDestructibleStructures: false, ignoreRoads: false,
 
         // ignore: [],
         // avoid: [
         //
         // ],
         maxOps: 2000,   // CPU /1000
-        serialize: false,
-        maxRooms: 1,
-        range: 0,
-        plainCost: 1,
-        // swampCost: 5,
+        serialize: false, maxRooms: 1, range: 0, plainCost: 1, // swampCost: 5,
         swampCost: 25,
     };
 
@@ -165,19 +128,19 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
     }
     if (typeof action === 'function') {
         res = action.call(this, target, ...args);
-    } else{
-        if (this[action] !== undefined){
-            res = this[action](target, ...args);   
-        }else{
-            console.log('Unknown action '+action)
+    } else {
+        if (this[action] !== undefined) {
+            res = this[action](target, ...args);
+        } else {
+            console.log('Unknown action ' + action)
             return ERR_BUSY;
         }
     }
 
-    if (res === OK){
+    if (res === OK) {
         //Action Callbacks
-        if (action === 'transfer'){
-            if (target instanceof StructureController){
+        if (action === 'transfer') {
+            if (target instanceof StructureController) {
                 utils.addStat(`rooms.${this.room.name}.energyDeliveredToController`, this.getActiveBodyparts(WORK));
             }
         }
@@ -208,7 +171,7 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
 
 if (!Creep.prototype._moveTo) {
     Creep.prototype._moveTo = Creep.prototype.moveTo;
-    Creep.prototype.moveTo = function(...myArgumentsArray) {
+    Creep.prototype.moveTo = function (...myArgumentsArray) {
 
         const posKey = `${this.pos.x},${this.pos.y}`;
         if (!this.room.memory) {
@@ -224,7 +187,8 @@ if (!Creep.prototype._moveTo) {
         }
 
         //BEFORE
-        let returnValue = this._moveTo.apply(this, myArgumentsArray);
+        let returnValue;
+        returnValue = this._moveTo.apply(this, myArgumentsArray);
         //AFTER
 
 

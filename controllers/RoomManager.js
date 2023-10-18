@@ -22,8 +22,7 @@ const RoomManager = {
             const roomStatsPath = `rooms.${roomName}`;
             if (!utils.getStat(roomStatsPath)) {
                 utils.setStat(`${roomStatsPath}.energyHarvested`, 0);
-                //                utils.setStat(`${roomStatsPath}.mineralsHarvested`, 0);
-                //                utils.setStat(`${roomStatsPath}.energySpentOnRepair`, 0);
+                utils.setStat(`${roomStatsPath}.mineralsHarvested`, 0);
                 utils.setStat(`${roomStatsPath}.energyDeliveredToController`, 0);
                 utils.setStat(`${roomStatsPath}.energyDeliveredToExtensions`, 0);
 
@@ -40,7 +39,6 @@ const RoomManager = {
             if (room.hasHostile() && room.controller && room.controller.safeModeAvailable && room.controller.safeModeCooldown === 0 && (room.controller.hits / room.controller.hitsMax < 0.02)) {
                 room.controller.activateSafeMode();
             }
-
 
 
             // 3. Создание задач
@@ -86,10 +84,10 @@ const RoomManager = {
 
 
             // 6.Статистика
-            if (config.useStats) {
-
+            if (true) {
                 // Обновление статистики на основе лога событий
                 for (const event of eventLog) {
+                    // console.log(JSON.stringify(event));
                     switch (event.event) {
                         case EVENT_HARVEST:
                             const target = Game.getObjectById(event.data.targetId);
@@ -101,7 +99,6 @@ const RoomManager = {
                             break;
 
                         case EVENT_REPAIR:
-                            const energySpentOnRepair = utils.getStat(`${roomStatsPath}.energySpentOnRepair`);
                             utils.addStat(`${roomStatsPath}.energySpentOnRepair`, event.data.energySpent);
                             break;
 
@@ -114,6 +111,16 @@ const RoomManager = {
                                 if (target instanceof StructureSpawn || target instanceof StructureExtension) {
                                     utils.addStat(`${roomStatsPath}.energyDeliveredToExtensions`, event.data.amount);
                                 }
+                                if (target instanceof Structure) {
+                                    // const pos = new RoomPosition(event.data.x, event.data.y, roomName);
+                                    // const constructionSites = pos.lookFor(LOOK_CONSTRUCTION_SITES);
+                                    // if (constructionSites.length > 0) {
+                                    // }
+                                    if (event.data.incomplete){
+                                        utils.addStat(`${roomStatsPath}.energyDeliveredToConstructions`, event.data.amount);
+                                    }
+                                }
+
                             }
                             break;
 
@@ -154,25 +161,27 @@ const RoomManager = {
             }
 
             if (config.showStats) {
-                const energyHarvestedAvg = utils.getAvgStat(`rooms.${roomName}.energyHarvested`);
-                const energyHarvestedSum = utils.getSumStat(`rooms.${roomName}.energyHarvested`);
-                const mineralsHarvestedAvg = utils.getAvgStat(`rooms.${roomName}.mineralsHarvested`);
-                const mineralsHarvestedSum = utils.getSumStat(`rooms.${roomName}.mineralsHarvested`);
-                const energyDeliveredToControllerAvg = utils.getAvgStat(`rooms.${roomName}.energyDeliveredToController`);
-                const energyDeliveredToControllerSum = utils.getSumStat(`rooms.${roomName}.energyDeliveredToController`);
-                const energyDeliveredToExtensionsAvg = utils.getAvgStat(`rooms.${roomName}.energyDeliveredToExtensions`);
-                const energyDeliveredToExtensionsSum = utils.getSumStat(`rooms.${roomName}.energyDeliveredToExtensions`);
-                const creepsDiedSum = utils.getSumStat(`rooms.${roomName}.creepsDied`);
-                const creepsSpawnedSum = utils.getSumStat(`rooms.${roomName}.creepsSpawned`);
+                const statPaths = [
+                    { path: `energyHarvested`, label: "Energy harvested" },
+                    { path: `mineralsHarvested`, label: "Minerals harvested" },
+                    { path: `energyDeliveredToController`, label: "Energy delivered to controller" },
+                    { path: `energyDeliveredToExtensions`, label: "Energy delivered to extensions" },
+                    { path: `energyDeliveredToConstructions`, label: "Energy delivered to constructions" },
+                    { path: `creepsDied`, label: "Creeps died" },
+                    { path: `creepsSpawned`, label: "Creeps spawned" }
+                ];
 
-                utils.createDebugVisual(room.name, 0, 0,
-                    `Energy harvested: ${energyHarvestedSum} (${energyHarvestedAvg}/t)`,
-                    `Minerals harvested: ${mineralsHarvestedSum} (${mineralsHarvestedAvg}/t)`,
-                    `Energy delivered to controller: ${energyDeliveredToControllerSum} (${energyDeliveredToControllerAvg}/t)`,
-                    `Energy delivered to extensions: ${energyDeliveredToExtensionsSum} (${energyDeliveredToExtensionsAvg}/t)`,
-                    `Creeps died: ${creepsDiedSum}/t`,
-                    `Creeps spawned: ${creepsSpawnedSum}/t`,
-                    {align: "left"});
+                const roomStats = statPaths.reduce((stats, {path, label}) => {
+                    const statData = utils.getStatData(path, roomName);
+                    stats[label] = {
+                        sum: statData.sum, avg: statData.avg, values: statData.values,
+                    };
+                    return stats;
+                }, {});
+
+                const debugVisuals = statPaths.map(({label}) => `${label}: ${roomStats[label].sum} (${roomStats[label].avg}/t)`);
+
+                utils.createDebugVisual(room.name, 0, 0, ...debugVisuals, {align: "left"});
             }
         }
     }

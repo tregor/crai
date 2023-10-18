@@ -8,6 +8,9 @@ module.exports = {
     memory: {
         transporting: true,
     },
+    settings: {
+        minCargoPickup: 0.10,
+    },
     /** @param {Creep} creep **/
     run: function (creep) {
         if (creep.memory.transporting && creep.store[RESOURCE_ENERGY] === 0) {
@@ -29,24 +32,6 @@ module.exports = {
                 return;
             }
 
-            // Help haulers
-            const haulers = creep.room.find(FIND_MY_CREEPS, {filter: (creep) => creep.memory.role === 'hauler'});
-            const miners = creep.room.find(FIND_MY_CREEPS, {filter: (creep) => creep.memory.role === 'miner'});
-            if (roleHauler.getSuccessRate(creep.room) < 0.2 || haulers.length === 0 || miners.length === 0) {
-                const nearest = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                    filter: (structure) => {
-                        return (structure.structureType === STRUCTURE_EXTENSION ||
-                                structure.structureType === STRUCTURE_SPAWN) &&
-                            structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-                    }
-                });
-                if (nearest) {
-                    creep.say("Hauler");
-                    creep.moveToAndPerform(nearest, 'transfer', RESOURCE_ENERGY);
-                    return;
-                }
-            }
-
             // Help builders
             if (roleBuilder.getSuccessRate(creep.room) < 0.2) {
                 for (let priority of config.constructionSitePriority) {
@@ -62,8 +47,26 @@ module.exports = {
                 }
             }
 
+            // Help haulers
+            const haulers = creep.room.find(FIND_MY_CREEPS, {filter: (creep) => creep.memory.role === 'hauler'});
+            const miners = creep.room.find(FIND_MY_CREEPS, {filter: (creep) => creep.memory.role === 'miner'});
+            if (haulers.length === 0 || miners.length === 0) {
+                const nearest = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                    filter: (structure) => {
+                        return (structure.structureType === STRUCTURE_EXTENSION ||
+                                structure.structureType === STRUCTURE_SPAWN) &&
+                            structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                    }
+                });
+                if (nearest) {
+                    creep.say("Hauler");
+                    creep.moveToAndPerform(nearest, 'transfer', RESOURCE_ENERGY);
+                    return;
+                }
+            }
+
             // Charge controller untill max LVL
-            if (creep.room.controller.level < 8) {
+            if (creep.room.controller.level <= 8) {
                 creep.moveToAndPerform(creep.room.controller, 'transfer', RESOURCE_ENERGY);
                 return;
             }
@@ -72,12 +75,12 @@ module.exports = {
         } else {
             // Если крип не несет ресурс
             const haulers = creep.room.find(FIND_MY_CREEPS, {filter: (creep) => creep.memory.role === 'hauler'});
-            const miners = creep.room.find(FIND_MY_CREEPS, {filter: (creep) => creep.memory.role === 'miner'});
+            // const miners = creep.room.find(FIND_MY_CREEPS, {filter: (creep) => creep.memory.role === 'miner'});
 
             const sources = creep.room.find(FIND_SOURCES_ACTIVE, {
                 filter: (source) => {
                     const miners = source.pos.findInRange(FIND_MY_CREEPS, 2, {
-                        filter: (miner) => {miner.id !== creep.id}
+                        filter: (miner) => (miner.id !== creep.id)
                     });
                     return miners.length <= config.minersPerSource && source.energy > 0;
                 }
@@ -90,9 +93,9 @@ module.exports = {
                         );
                 }
             });
-            const resources_droped = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 8, {
+            const resources_droped = creep.room.find(FIND_DROPPED_RESOURCES, {
                 filter: (resource) => {
-                    return resource.resourceType === RESOURCE_ENERGY && resource.amount > 0;
+                    return resource.resourceType === RESOURCE_ENERGY && resource.amount > (creep.store.getFreeCapacity(RESOURCE_ENERGY) * this.settings.minCargoPickup);
                 }
             });
 
@@ -104,11 +107,15 @@ module.exports = {
             }
             if (resources_droped.length) {
                 let nearest = creep.pos.findClosestByRange(resources_droped);
-                if (creep.moveToAndPerform(nearest, 'pickup', RESOURCE_ENERGY) === OK) {
+                let index = parseInt(creep.id) % resources_droped.length;
+                let selfenest = resources_droped[index];
+                if (creep.moveToAndPerform(selfenest, 'pickup', RESOURCE_ENERGY) === OK) {
                     return;
                 }
             }
-            if (sources.length && (haulers.length === 0 || miners.length === 0)) {
+            if (sources.length
+                // && (haulers.length === 0 || miners.length === 0)
+            ) {
                 let nearest = creep.pos.findClosestByRange(sources);
                 if (creep.moveToAndPerform(nearest, 'harvest', RESOURCE_ENERGY) === OK) {
                     return;

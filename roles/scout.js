@@ -5,11 +5,8 @@ const minClaimSources = 3;
 module.exports = {
     roleName: 'scout',
     memory: {
-        targetRoom: null,
-        claimRoom: null,
-        claimAllowed: false,
-    },
-    /** @param {Creep} creep **/
+        targetRoom: null, claimRoom: null, claimAllowed: false,
+    }, /** @param {Creep} creep **/
     run: function (creep) {
         // Если есть враждебный игрок и крип может получить урон, то убежать
         const hostileCreeps = creep.room.find(FIND_HOSTILE_CREEPS);
@@ -22,13 +19,9 @@ module.exports = {
 
         // Если контроллер в комнате не принадлежит никому, то захватить его
         const controller = creep.room.controller;
-        if (controller
-            && (controller.owner === undefined)
+        if (controller && (controller.owner === undefined)
             //            && (controller.reservation === undefined)
-            && (creep.getActiveBodyparts(CLAIM) > 0)
-            && (controller.pos.findInRange(FIND_MY_CREEPS, 1, {filter: (claimer) => claimer.id !== creep.id}).length < 1)
-            && (controller.room.find(FIND_SOURCES).length >= minClaimSources)
-        ) {
+            && (creep.getActiveBodyparts(CLAIM) > 0) && (controller.pos.findInRange(FIND_MY_CREEPS, 1, {filter: (claimer) => claimer.id !== creep.id}).length < 1) && (controller.room.find(FIND_SOURCES).length >= minClaimSources)) {
             if (!creep.memory.claimRoom) {
                 creep.memory.claimRoom = creep.room.name;
                 const distance = Game.map.getRoomLinearDistance(config.defaultSpawn.room.name, controller.room.name);
@@ -111,11 +104,10 @@ module.exports = {
         if (creep.memory.targetRoom) {
             creep.moveTo(new RoomPosition(25, 25, creep.memory.targetRoom), {visualizePathStyle: {stroke: '#ffffff'}});
         }
-    },
-    getSuccessRate: function () {
-        return 1; // 0.05 means 5% of effecienty
-    },
-    getBody: function (tier) {
+    }, getSuccessRate: function () {
+        return (Game.spawns.length / Game.gcl.level);
+        // return 1; // 0.05 means 5% of effecienty
+    }, getBody: function (tier) {
         const body = [];
         let energy = config.energyPerTiers[tier];
         body.push(CLAIM);

@@ -11,6 +11,9 @@ class QuestsManager {
         this.questTypesByRole = {
             miner: ['default', 'mining'],
             hauler: ['default', 'hauling'],
+            repairer: ['default', 'repair'],
+            builder: ['default', 'hauling', 'building'],
+            worker: ['default', 'hauling', 'building'],
             // ... другие роли и их доступные типы квестов
         };
         this.memory = Memory.questsManager;

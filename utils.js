@@ -4,6 +4,10 @@ const config = require('config');
 function energyReqForCreep(roleName, tier = 1) {
     const creepRoles = require('roles');
     const role = creepRoles[roleName];
+    if (!role) {
+        console.log(roleName);
+        return 0
+    }
     const bodyCr = role.getBody(tier);
 
     let cost = 0;
@@ -12,6 +16,7 @@ function energyReqForCreep(roleName, tier = 1) {
     }
     return cost;
 }
+
 function setStat(path, value) {
     _.set(Memory.stats.ticks[Game.time], path, value);
 }
@@ -51,6 +56,23 @@ function getAvgStat(path) {
     return (sumStat / config.statsMaxTicks).toFixed(2);
 }
 
+function getStatData(key, roomName) {
+    const currentTick = Game.time;
+    const path = `rooms.${roomName}.${key}`;
+    const startTick = Math.max(currentTick - config.statsMaxTicks, Math.min(...Object.keys(Memory.stats.ticks)));
+    const ticks = Array.from({length: currentTick - startTick + 1}, (_, i) => startTick + i);
+
+    const statData = ticks.map(tick => getStat(path, tick));
+
+    return {
+        sum: statData.reduce((sum, value) => sum + value, 0),
+        avg: (statData.reduce((sum, value) => sum + value, 0) / config.statsMaxTicks).toFixed(2),
+        min: Math.min(...statData),
+        max: Math.max(...statData),
+        values: statData
+    };
+}
+
 function formatETA(seconds) {
     if (seconds === Infinity) {
         return 'never';
@@ -75,8 +97,7 @@ function createDebugVisual(roomName, x, y, ...texts) {
     let maxWidth = 0;
 
     let opt = {
-        font: 0.2,
-        align: "center",
+        font: 0.2, align: "center",
     };
     if (typeof texts[texts.length - 1] === 'object') {
         opt = {...opt, ...texts[texts.length - 1]};
@@ -130,12 +151,12 @@ function loadBuildplan(room, plan) {
     if (myConstructionSites.length >= config.maxConstructionSites) return;
 
     for (const [structType, positions] of Object.entries(plan.buildings)) {
-        for (const {x,y} of positions['pos']) {
+        for (const {x, y} of positions['pos']) {
             const pos = new RoomPosition(x, y, room.name)
             const objectsAtPos = pos.lookFor(LOOK_CONSTRUCTION_SITES).concat(pos.lookFor(LOOK_STRUCTURES));
             if (objectsAtPos.length === 0) {
                 let res = room.createConstructionSite(pos.x, pos.y, global[MSG_STRUCT[structType]]);
-                if (res !== OK && res !== ERR_FULL && res !== ERR_RCL_NOT_ENOUGH){
+                if (res !== OK && res !== ERR_FULL && res !== ERR_RCL_NOT_ENOUGH) {
                     console.log(`createConstructionSite ${MSG_ERR[res]} ${pos}`)
                 }
             }
@@ -165,8 +186,7 @@ function drawRoadUsage(room) {
 
             // Отрисовываем прозрачный квадратик на позиции
             room.visual.rect(pos.x - 0.5, pos.y - 0.5, 1, 1, {
-                fill: color,
-                opacity: 0.2,
+                fill: color, opacity: 0.2,
             });
         }
         if (config.drawRoadMap) {
@@ -174,9 +194,7 @@ function drawRoadUsage(room) {
                 continue;
             }
             room.visual.text(usageRate - 1, pos, {
-                font: 0.5,
-                align: "center",
-                opacity: 0.8,
+                font: 0.5, align: "center", opacity: 0.8,
             });
         }
     }
@@ -201,29 +219,24 @@ function drawDistanceTransform(room) {
             if (terrain.get(x, y) === TERRAIN_MASK_WALL) {
                 matrix[x][y] = 0;
                 visited[x][y] = true;
-                queue.push({ x, y });
+                queue.push({x, y});
             }
         }
     }
 
-    const directions = [
-        { dx: 1, dy: 0 },
-        { dx: -1, dy: 0 },
-        { dx: 0, dy: 1 },
-        { dx: 0, dy: -1 },
-        ];
+    const directions = [{dx: 1, dy: 0}, {dx: -1, dy: 0}, {dx: 0, dy: 1}, {dx: 0, dy: -1},];
 
     while (queue.length > 0) {
-        const { x, y } = queue.shift();
+        const {x, y} = queue.shift();
 
-        for (const { dx, dy } of directions) {
+        for (const {dx, dy} of directions) {
             const nx = x + dx;
             const ny = y + dy;
 
             if (nx >= 0 && nx < width && ny >= 0 && ny < height && !visited[nx][ny]) {
                 matrix[nx][ny] = matrix[x][y] + 1;
                 visited[nx][ny] = true;
-                queue.push({ x: nx, y: ny });
+                queue.push({x: nx, y: ny});
             }
         }
     }
@@ -234,15 +247,14 @@ function drawDistanceTransform(room) {
         for (let y = 0; y < height; y++) {
             const pos = new RoomPosition(x, y, room.name);
             const distance = matrix[x][y];
-            if (distance < 1){
+            if (distance < 1) {
                 continue;
             }
             const normalizedDistance = distance / maxDistance;
             const interpolatedDistance = interpolate(normalizedDistance, 0.2, 1);
             const blueValue = Math.round(interpolatedDistance * 255);
             room.visual.rect(pos.x - 0.5, pos.y - 0.5, 1, 1, {
-                fill: `rgba(0, 0, ${blueValue}, 1)`,
-                opacity: 0.5,
+                fill: `rgba(0, 0, ${blueValue}, 1)`, opacity: 0.5,
             });
 //            room.visual.text(distance, pos.x, pos.y, {
 //                fontSize: 0.5 * distance,
@@ -258,8 +270,8 @@ function drawDistanceTransform(room) {
  * Simple benchmark test with sanity check
  *
  * Usage: benchmark([
- *		() => doThing(),
- *		() => doThingAnotherWay(),
+ *        () => doThing(),
+ *        () => doThingAnotherWay(),
  * ]);
  *
  * Output:
@@ -269,20 +281,15 @@ function drawDistanceTransform(room) {
  * Time: 1.118, Avg: 1.118, Function: () => doThingAnotherWay()
  */
 function benchmark(arr, iter = 1) {
-    var exp,
-        r,
-        i,
-        j,
-        len = arr.length;
+    var exp, r, i, j, len = arr.length;
     var start, end, used;
-    var results = _.map(arr, fn => ({ fn: fn.toString(), time: 0, avg: 0 }));
+    var results = _.map(arr, fn => ({fn: fn.toString(), time: 0, avg: 0}));
     for (j = 0; j < iter; j++) {
         for (i = 0; i < len; i++) {
             start = Game.cpu.getUsed();
             results[i].rtn = arr[i]();
             used = Game.cpu.getUsed() - start;
-            if (i > 0 && results[i].rtn != results[0].rtn)
-                throw new Error("Results are not the same!");
+            if (i > 0 && results[i].rtn != results[0].rtn) throw new Error("Results are not the same!");
             results[i].time += used;
         }
     }
@@ -293,6 +300,7 @@ function benchmark(arr, iter = 1) {
         console.log(`Time: ${res.time}, Avg: ${res.avg}, Function: ${res.fn}`);
     });
 }
+
 // Gankdalf 7 December 2016 at 22:35
 function calculateCostOfaMine(distance, swampCount, mineCapacity) {
     //Get the number of WORK parts needed
@@ -306,9 +314,7 @@ function calculateCostOfaMine(distance, swampCount, mineCapacity) {
 
     //Get the number of carry parts needed to move the generated energy in one trip
     //(can in theory be split between multiple creeps)
-    const carry_needed = Math.ceil(
-        carry_travel_time * (energy_generated / CARRY_CAPACITY)
-        );
+    const carry_needed = Math.ceil(carry_travel_time * (energy_generated / CARRY_CAPACITY));
 
     //Get the number of move parts needed to move the work and carry parts at 1:1 on roads
     //(including a single work part for the carry creep)
@@ -316,69 +322,34 @@ function calculateCostOfaMine(distance, swampCount, mineCapacity) {
     const carry_move_needed = Math.ceil((carry_needed + 1) / 2);
 
     //Get the cost per tick for a container
-    const container_cost =
-    CONTAINER_DECAY / CONTAINER_DECAY_TIME_OWNED / REPAIR_POWER;
+    const container_cost = CONTAINER_DECAY / CONTAINER_DECAY_TIME_OWNED / REPAIR_POWER;
 
     //Get the one-time energy cost to create the needed needed creeps
-    const miner_cost =
-    work_needed * BODYPART_COST["work"] +
-    work_move_needed * BODYPART_COST["move"];
-    const carry_cost =
-    carry_needed * BODYPART_COST["carry"] +
-    carry_move_needed * BODYPART_COST["move"] +
-    BODYPART_COST["work"];
+    const miner_cost = work_needed * BODYPART_COST["work"] + work_move_needed * BODYPART_COST["move"];
+    const carry_cost = carry_needed * BODYPART_COST["carry"] + carry_move_needed * BODYPART_COST["move"] + BODYPART_COST["work"];
 
     //Get the cost per-tick to create the needed creeps
-    const carry_cost_per_tick =
-    carry_cost / (CREEP_LIFE_TIME - carry_travel_time);
-    const miner_cost_per_tick =
-    miner_cost / (CREEP_LIFE_TIME - miner_travel_time);
+    const carry_cost_per_tick = carry_cost / (CREEP_LIFE_TIME - carry_travel_time);
+    const miner_cost_per_tick = miner_cost / (CREEP_LIFE_TIME - miner_travel_time);
 
     //Get the number of ticks required in a normal creep life cycle required to spawn the needed creeps
     //(This accounts for the time when two miners will exist at the same time for a single source)
-    const miner_tick_cost_per_cycle =
-    (((work_needed + work_move_needed) * 3) /
-      (CREEP_LIFE_TIME - miner_travel_time)) *
-    CREEP_LIFE_TIME;
-    const carry_tick_cost_per_cycle =
-    (((carry_needed + carry_move_needed) * 3) /
-      (CREEP_LIFE_TIME - carry_travel_time)) *
-    CREEP_LIFE_TIME;
+    const miner_tick_cost_per_cycle = (((work_needed + work_move_needed) * 3) / (CREEP_LIFE_TIME - miner_travel_time)) * CREEP_LIFE_TIME;
+    const carry_tick_cost_per_cycle = (((carry_needed + carry_move_needed) * 3) / (CREEP_LIFE_TIME - carry_travel_time)) * CREEP_LIFE_TIME;
 
     //Get the repair cost to maintain the roads
-    const plain_road_cost =
-    ((distance - swampCount) * (ROAD_DECAY_AMOUNT / ROAD_DECAY_TIME)) /
-    REPAIR_POWER;
-    const swamp_road_cost =
-    (swampCount *
-      (ROAD_DECAY_AMOUNT / ROAD_DECAY_TIME) *
-      CONSTRUCTION_COST_ROAD_SWAMP_RATIO) /
-    REPAIR_POWER;
+    const plain_road_cost = ((distance - swampCount) * (ROAD_DECAY_AMOUNT / ROAD_DECAY_TIME)) / REPAIR_POWER;
+    const swamp_road_cost = (swampCount * (ROAD_DECAY_AMOUNT / ROAD_DECAY_TIME) * CONSTRUCTION_COST_ROAD_SWAMP_RATIO) / REPAIR_POWER;
 
     return {
-        totalEnergyCostPerTick:
-      Math.round(
-          (carry_cost_per_tick +
-          miner_cost_per_tick +
-          swamp_road_cost +
-          plain_road_cost +
-          container_cost) *
-          100
-          ) / 100,
-        spawnTicksPerCycle: Math.ceil(
-            miner_tick_cost_per_cycle + carry_tick_cost_per_cycle
-            ),
+        totalEnergyCostPerTick: Math.round((carry_cost_per_tick + miner_cost_per_tick + swamp_road_cost + plain_road_cost + container_cost) * 100) / 100,
+        spawnTicksPerCycle: Math.ceil(miner_tick_cost_per_cycle + carry_tick_cost_per_cycle),
         spawnEnergyCapacityRequired: Math.max(miner_cost, carry_cost),
-        initialStructureCost:
-      (distance - swampCount) * CONSTRUCTION_COST["road"] +
-      swampCount *
-        CONSTRUCTION_COST["road"] *
-        CONSTRUCTION_COST_ROAD_SWAMP_RATIO +
-      CONSTRUCTION_COST["container"]
+        initialStructureCost: (distance - swampCount) * CONSTRUCTION_COST["road"] + swampCount * CONSTRUCTION_COST["road"] * CONSTRUCTION_COST_ROAD_SWAMP_RATIO + CONSTRUCTION_COST["container"]
     };
 }
 
-global.resetMemory = function(){
+global.resetMemory = function () {
     RawMemory.set('{}');
     Memory.creeps = {};
     Memory.rooms = {};
@@ -389,46 +360,41 @@ global.resetMemory = function(){
  * Clear the in-game console
  * Usage: `clear()` in the console
  */
-global.clear = function() {
-    console.log(
-        "<script>angular.element(document.getElementsByClassName('fa fa-trash ng-scope')[0].parentNode).scope().Console.clear()</script>"
-        );
+global.clear = function () {
+    console.log("<script>angular.element(document.getElementsByClassName('fa fa-trash ng-scope')[0].parentNode).scope().Console.clear()</script>");
 };
 // warinternal 24 November 2016 at 04:15
-global.RAMPART_UPKEEP =
-  RAMPART_DECAY_AMOUNT / REPAIR_POWER / RAMPART_DECAY_TIME;
+global.RAMPART_UPKEEP = RAMPART_DECAY_AMOUNT / REPAIR_POWER / RAMPART_DECAY_TIME;
 global.ROAD_UPKEEP = ROAD_DECAY_AMOUNT / REPAIR_POWER / ROAD_DECAY_TIME;
-global.CONTAINER_UPKEEP =
-  CONTAINER_DECAY / REPAIR_POWER / CONTAINER_DECAY_TIME_OWNED;
-global.REMOTE_CONTAINER_UPKEEP =
-  CONTAINER_DECAY / REPAIR_POWER / CONTAINER_DECAY_TIME;
+global.CONTAINER_UPKEEP = CONTAINER_DECAY / REPAIR_POWER / CONTAINER_DECAY_TIME_OWNED;
+global.REMOTE_CONTAINER_UPKEEP = CONTAINER_DECAY / REPAIR_POWER / CONTAINER_DECAY_TIME;
 /**
  * Lookup tables
  */
 global.MSG_ERR = _(global)
-  .pick((v, k) => k.startsWith("ERR_"))
-  .invert()
-  .value();
+    .pick((v, k) => k.startsWith("ERR_"))
+    .invert()
+    .value();
 
 global.MSG_COLOR = _(global)
-  .pick((v, k) => k.startsWith("COLOR_"))
-  .invert()
-  .value();
+    .pick((v, k) => k.startsWith("COLOR_"))
+    .invert()
+    .value();
 
 global.MSG_FIND = _(global)
-  .pick((v, k) => k.startsWith("FIND_"))
-  .invert()
-  .value();
+    .pick((v, k) => k.startsWith("FIND_"))
+    .invert()
+    .value();
 
 global.MSG_STRUCT = _(global)
-  .pick((v, k) => k.startsWith("STRUCTURE_"))
-  .invert()
-  .value();
+    .pick((v, k) => k.startsWith("STRUCTURE_"))
+    .invert()
+    .value();
 
 global.MSG_RES = _(global)
-  .pick((v, k) => k.startsWith("RESOURCE_"))
-  .invert()
-  .value();
+    .pick((v, k) => k.startsWith("RESOURCE_"))
+    .invert()
+    .value();
 
 module.exports = {
     setStat,
@@ -436,6 +402,7 @@ module.exports = {
     getStat,
     getSumStat,
     getAvgStat,
+    getStatData,
     formatETA,
     createDebugVisual,
     loadBuildplan,

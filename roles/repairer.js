@@ -6,6 +6,9 @@ module.exports = {
     memory: {
         default: true,
     },
+    settings: {
+        minCargoPickup: 0.66,
+    },
     /** @param {Creep} creep **/
     run: function (creep) {
         if (creep.memory.building && creep.store[RESOURCE_ENERGY] === 0) {
@@ -57,7 +60,7 @@ module.exports = {
             });
             const resources_droped = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 8, {
                 filter: (resource) => {
-                    return resource.resourceType === RESOURCE_ENERGY && resource.amount > 0;
+                    return resource.resourceType === RESOURCE_ENERGY && resource.amount > (creep.store.getFreeCapacity(RESOURCE_ENERGY) * this.settings.minCargoPickup);
                 }
             });
 

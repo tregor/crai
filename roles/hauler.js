@@ -6,6 +6,9 @@ module.exports = {
     memory: {
         delivering: true, 
     },
+    settings: {
+        minCargoPickup: 0.99,
+    },
     /** @param {Creep} creep **/
     run: function (creep) {
         if (creep.memory.delivering && creep.store[RESOURCE_ENERGY] === 0) {
@@ -19,8 +22,7 @@ module.exports = {
 
 
         if (creep.memory.delivering) {
-
-            // Find spawns, extensions or towers and deliver energy to them
+            // Find spawns or extensions and deliver energy to them
             const extensions = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return (
@@ -31,6 +33,19 @@ module.exports = {
             });
             if (extensions.length) {
                 creep.moveToAndPerform(creep.pos.findClosestByRange(extensions), 'transfer', RESOURCE_ENERGY);
+                return;
+            }
+
+            // Only towers after spawns
+            const towers = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (
+                            structure.structureType === STRUCTURE_TOWER)
+                        && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                }
+            });
+            if (towers.length) {
+                creep.moveToAndPerform(creep.pos.findClosestByRange(towers), 'transfer', RESOURCE_ENERGY);
                 return;
             }
 
@@ -74,19 +89,6 @@ module.exports = {
                 return;
             }
 
-            // Only towers after spawns
-            const towers = creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (
-                            structure.structureType === STRUCTURE_TOWER)
-                        && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-                }
-            });
-            if (towers.length) {
-                creep.moveToAndPerform(creep.pos.findClosestByRange(towers), 'transfer', RESOURCE_ENERGY);
-                return;
-            }
-
             // Find anything that can have energy capacity
             const targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
@@ -101,17 +103,16 @@ module.exports = {
             // Dropped resources
             let roomDropped = creep.room.find(FIND_DROPPED_RESOURCES, {
                 filter: (resource) => {
-                    const creepsAround = resource.pos.findInRange(FIND_MY_CREEPS, 2, {
-                        filter: (c) => c.id !== creep.id // Exclude self from nearby creeps
-                    }); // Check for nearby haulers
-                    return resource.resourceType === RESOURCE_ENERGY && resource.amount > (creep.store.getFreeCapacity(RESOURCE_ENERGY) * 0.0);
+                    return resource.resourceType === RESOURCE_ENERGY && resource.amount > (creep.store.getFreeCapacity(RESOURCE_ENERGY) * this.settings.minCargoPickup); //Короче здесь ноль это требование процента от вместимости, но что бы не лагало нужен ноль
                 }
             });
             if (roomDropped.length > 0) {
-                roomDropped.sort((a, b) => a.amount - b.amount); // Sort by most progress first
-                let nearest = creep.pos.findClosestByRange(roomDropped.slice(0, 10));
+                roomDropped.sort((a, b) => a.amount - b.amount); // Sort by most amount first
+                let nearest = creep.pos.findClosestByRange(roomDropped.slice(0, 4));
+                let index = parseInt(creep.id) % roomDropped.length;
+                let selfenest = roomDropped[index];
 
-                creep.moveToAndPerform(nearest, 'pickup');
+                creep.moveToAndPerform(selfenest, 'pickup');
                 return;
             }
 
@@ -123,7 +124,7 @@ module.exports = {
                 }
                 let roomDropped = room.find(FIND_DROPPED_RESOURCES, {
                     filter: (resource) => {
-                        return resource.resourceType === RESOURCE_ENERGY && resource.amount > creep.store.getFreeCapacity(RESOURCE_ENERGY);
+                        return resource.resourceType === RESOURCE_ENERGY && resource.amount > (creep.store.getFreeCapacity(RESOURCE_ENERGY) * this.settings.minCargoPickup);
                     }
                 });
                 allDropped = allDropped.concat(roomDropped);
@@ -144,6 +145,7 @@ module.exports = {
     },
     getSuccessRate: function (room) {
         const haulers = _.filter(room.find(FIND_MY_CREEPS), (creep) => creep.memory.role === this.roleName);
+        const miners = _.filter(room.find(FIND_MY_CREEPS), (creep) => creep.memory.role === 'miner');
         const resources = _.filter(room.find(FIND_DROPPED_RESOURCES), (resource) => resource.resourceType === RESOURCE_ENERGY);
         const energyDropped = _.sum(resources, (r) => (r.amount));
         const roomEnergy = room.energyAvailable / room.energyCapacityAvailable;
@@ -154,9 +156,12 @@ module.exports = {
         if (haulers.length === 0) {
             return 0;
         }
+        if (haulers.length > miners.length / config.minersPerSource){
+            return 1;
+        }
 
         // return ((haulers.length * (HARVEST_POWER *96)) / energyDropped) /8;
-        return ((haulers.length * 4) / resources.length) * roomEnergy;
+        return (haulers.length / resources.length) * roomEnergy;
     },
     /** @param {number} tier **/
     getBody: function (tier) {

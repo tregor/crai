@@ -1,3 +1,4 @@
+"use strict";
 const config = require("config");
 const utils = require("utils");
 const creepRoles = require("roles");
