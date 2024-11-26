@@ -18,4 +18,12 @@ class Quest {
         this.assignedCreep = null;
         this.status = "waiting";
     }
+
+    completed(){
+        this.status = "completed"
+        this.assignedCreep.memory.questId = null;
+    }
+    error(){
+        this.status = "error"
+    }
 }

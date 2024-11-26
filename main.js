@@ -17,6 +17,7 @@ module.exports = {
     }),
 };
 
+// Limiting to 1 FPS and wraping with memory hack included
 function wrapLoop(fn) {
     let memory;
     let tick;

@@ -40,19 +40,14 @@ module.exports = {
             }
         }
 
-        // Нет врагов, сторожим входы
-        // if (!creep.memory.exitPos) { // если позиция выхода не установлена, то устанавливаем
-        //     const exits = creep.room.find(FIND_EXIT);
-        //     const exitIndex = Math.floor(Math.random() * exits.length); // выбираем случайный индекс
-        //     // creep.memory.exitPos = new RoomPosition(exits[exitIndex].x, exits[exitIndex].y, exits[exitIndex].roomName);
-        //     creep.memory.exitPos = new RoomPosition(exits[exitIndex].x, exits[exitIndex].y, creep.room.name);
-        //     if (exits.length === 1) {
-        //         creep.memory.exitPos = new RoomPosition(25, 25, exits[exitIndex].roomName);
-        //     }
-        // }
-        // if (creep.memory.exitPos && (creep.pos.getRangeTo(creep.memory.exitPos.x, creep.memory.exitPos.y) > 2)) { // если не находимся на позиции выхода, то двигаемся к ней
-        //     creep.moveTo(creep.memory.exitPos.x, creep.memory.exitPos.y, {visualizePathStyle: {stroke: '#ffaaaa'}});
-        // }
+        if (config.flagAttack){
+            creep.moveTo(Game.flags['FLAG_ATTACK']);
+            // if (creep.room.name !== config.flagAttack.pos) {
+                // Патрулируем комнату
+                // const exitDir = creep.room.findExitTo(config.flagAttack.room.name);
+                // const exit = creep.pos.findClosestByRange(exitDir);
+            // }
+        }
 
     }, getSuccessRate: function (room) {
         const enemies = room.find(FIND_HOSTILE_CREEPS);

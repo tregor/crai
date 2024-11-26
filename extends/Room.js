@@ -96,7 +96,10 @@ Room.prototype.findFreeSources = function() {
                 miner.memory.role === 'miner'
                 && miner.memory.sourceId === source.id
             );
-            return ((miners.length < config.minersPerSource) && !source.room.hasHostile() && (source.energy > 0));
+
+            const minersPerSource = Math.min(config.minersPerSource, source.freeCells.length);
+
+            return ((miners.length < minersPerSource) && !source.room.hasHostile() && (source.energy > 0));
         }
     });
 }

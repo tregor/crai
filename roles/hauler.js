@@ -2,33 +2,28 @@ const config = require('../config');
 const utils = require("../utils");
 
 module.exports = {
-    roleName: 'hauler',
-    memory: {
-        delivering: true, 
-    },
-    settings: {
-        minCargoPickup: 0.99,
-    },
-    /** @param {Creep} creep **/
+    roleName: 'hauler', memory: {
+        delivering: true,
+    }, settings: {
+        minCargoPickup: 0.1,
+    }, /** @param {Creep} creep **/
     run: function (creep) {
         if (creep.memory.delivering && creep.store[RESOURCE_ENERGY] === 0) {
             creep.memory.delivering = false;
-            // creep.say('🔄 harvest');
+            creep.say('🔄 harvest');
         }
         if (!creep.memory.delivering && creep.store.getFreeCapacity() === 0) {
             creep.memory.delivering = true;
-            // creep.say('🚚 deliver');
+            creep.say('🚚 deliver');
         }
 
 
         if (creep.memory.delivering) {
+
             // Find spawns or extensions and deliver energy to them
             const extensions = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return (
-                        structure.structureType === STRUCTURE_EXTENSION
-                            || structure.structureType === STRUCTURE_SPAWN)
-                        && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                    return (structure.structureType === STRUCTURE_EXTENSION || structure.structureType === STRUCTURE_SPAWN) && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                 }
             });
             if (extensions.length) {
@@ -39,9 +34,7 @@ module.exports = {
             // Only towers after spawns
             const towers = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return (
-                            structure.structureType === STRUCTURE_TOWER)
-                        && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                    return (structure.structureType === STRUCTURE_TOWER) && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                 }
             });
             if (towers.length) {
@@ -50,23 +43,21 @@ module.exports = {
             }
 
             // Find links and fill them
-            const links = creep.room.find(FIND_STRUCTURES, {
+            const sources = creep.room.find(FIND_SOURCES);
+            const link_miners = sources[0].pos.findInRange(FIND_STRUCTURES, 4, {
                 filter: (structure) => {
-                    return (
-                            structure.structureType === STRUCTURE_LINK)
-                        && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                    return (structure.structureType === STRUCTURE_LINK) && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                 }
             });
-            if (links.length) {
-                creep.moveToAndPerform(creep.pos.findClosestByRange(links), 'transfer', RESOURCE_ENERGY);
+            if (link_miners.length) {
+                creep.moveToAndPerform(creep.pos.findClosestByRange(link_miners), 'transfer', RESOURCE_ENERGY);
                 return;
             }
-            
+
             // Find the nearest container and transfer energy to it
             const containers = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return (structure.structureType === STRUCTURE_CONTAINER) &&
-                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                    return (structure.structureType === STRUCTURE_CONTAINER) && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                 }
             });
             if (containers.length > 0) {
@@ -79,8 +70,7 @@ module.exports = {
             // Find the nearest storage and transfer energy to it
             const storages = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return (structure.structureType === STRUCTURE_STORAGE) &&
-                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                    return (structure.structureType === STRUCTURE_STORAGE) && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                 }
             });
             if (storages.length > 0) {
@@ -103,16 +93,17 @@ module.exports = {
             // Dropped resources
             let roomDropped = creep.room.find(FIND_DROPPED_RESOURCES, {
                 filter: (resource) => {
-                    return resource.resourceType === RESOURCE_ENERGY && resource.amount > (creep.store.getFreeCapacity(RESOURCE_ENERGY) * this.settings.minCargoPickup); //Короче здесь ноль это требование процента от вместимости, но что бы не лагало нужен ноль
+                    return resource.resourceType === RESOURCE_ENERGY && resource.amount > (creep.store.getFreeCapacity(RESOURCE_ENERGY) * this.settings.minCargoPickup);
                 }
             });
             if (roomDropped.length > 0) {
                 roomDropped.sort((a, b) => a.amount - b.amount); // Sort by most amount first
-                let nearest = creep.pos.findClosestByRange(roomDropped.slice(0, 4));
-                let index = parseInt(creep.id) % roomDropped.length;
-                let selfenest = roomDropped[index];
+                let nearest = creep.pos.findClosestByRange(roomDropped);
+                // const haulers = _.filter(creep.room.find(FIND_MY_CREEPS), (creep) => creep.memory.role === this.roleName);
+                // let index = (parseInt(creep.id) % haulers.length) % roomDropped.length;
+                // let selfenest = roomDropped[index];
 
-                creep.moveToAndPerform(selfenest, 'pickup');
+                creep.moveToAndPerform(nearest, 'pickup');
                 return;
             }
 
@@ -142,8 +133,7 @@ module.exports = {
             //Waiting for future tasks
             return;
         }
-    },
-    getSuccessRate: function (room) {
+    }, getSuccessRate: function (room) {
         const haulers = _.filter(room.find(FIND_MY_CREEPS), (creep) => creep.memory.role === this.roleName);
         const miners = _.filter(room.find(FIND_MY_CREEPS), (creep) => creep.memory.role === 'miner');
         const resources = _.filter(room.find(FIND_DROPPED_RESOURCES), (resource) => resource.resourceType === RESOURCE_ENERGY);
@@ -156,14 +146,13 @@ module.exports = {
         if (haulers.length === 0) {
             return 0;
         }
-        if (haulers.length > miners.length / config.minersPerSource){
+        if (haulers.length > miners.length / config.minersPerSource) {
             return 1;
         }
 
         // return ((haulers.length * (HARVEST_POWER *96)) / energyDropped) /8;
         return (haulers.length / resources.length) * roomEnergy;
-    },
-    /** @param {number} tier **/
+    }, /** @param {number} tier **/
     getBody: function (tier) {
         const body = [];
 

@@ -7,7 +7,7 @@ module.exports = {
         default: true,
     },
     settings: {
-        minCargoPickup: 0.50,
+        minCargoPickup: 0.90,
     },
     /** @param {Creep} creep **/
     run: function (creep) {
@@ -76,18 +76,19 @@ module.exports = {
     getSuccessRate: function (room) {
         const builders = room.find(FIND_MY_CREEPS, {filter: {memory: {role: 'builder'}}});
         const constructionSites = room.find(FIND_CONSTRUCTION_SITES);
-        const energyAvailable = _.sum(builders, (c) => (c.getActiveBodyparts(WORK) * BUILD_POWER)) * 2560;
+        const energyAvailable = _.sum(builders, (c) => (c.getActiveBodyparts(WORK) * BUILD_POWER)) * 64;
         const energyNeededForConstructs = _.sum(constructionSites, (s) => CONSTRUCTION_COST[s.structureType]);
         const energyRatio = (energyAvailable / energyNeededForConstructs) || 0;
 
         if (builders.length === 0) {
             return 0;
         }
-        if ((constructionSites.length === 0)) {
+        if (constructionSites.length === 0) {
             return builders.length;
         }
 
-        return Math.max(energyRatio, 0.1);
+        return (builders.length * 64)/constructionSites.length;
+        return energyRatio;
     },
     getBody: function (tier) {
         const body = [];

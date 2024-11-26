@@ -1,7 +1,7 @@
 const config = require('../config');
 const utils = require("../utils");
 
-const minClaimSources = 3;
+const minClaimSources = 2;
 module.exports = {
     roleName: 'scout',
     memory: {
@@ -11,8 +11,8 @@ module.exports = {
         // Если есть враждебный игрок и крип может получить урон, то убежать
         const hostileCreeps = creep.room.find(FIND_HOSTILE_CREEPS);
         if (hostileCreeps.length) {
-            // console.log(JSON.stringify(hostileCreeps))
-            // creep.say('RUN!');
+             console.log(JSON.stringify(hostileCreeps))
+             creep.say('RUN!');
             creep.moveTo(config.defaultSpawn);
             return;
         }
@@ -20,8 +20,10 @@ module.exports = {
         // Если контроллер в комнате не принадлежит никому, то захватить его
         const controller = creep.room.controller;
         if (controller && (controller.owner === undefined)
-            //            && (controller.reservation === undefined)
-            && (creep.getActiveBodyparts(CLAIM) > 0) && (controller.pos.findInRange(FIND_MY_CREEPS, 1, {filter: (claimer) => claimer.id !== creep.id}).length < 1) && (controller.room.find(FIND_SOURCES).length >= minClaimSources)) {
+//            && (controller.reservation === undefined)
+            && (creep.getActiveBodyparts(CLAIM) > 0)
+//            && (controller.pos.findInRange(FIND_MY_CREEPS, 1, {filter: (claimer) => claimer.id !== creep.id}).length < 1)
+            && (controller.room.find(FIND_SOURCES).length >= minClaimSources)) {
             if (!creep.memory.claimRoom) {
                 creep.memory.claimRoom = creep.room.name;
                 const distance = Game.map.getRoomLinearDistance(config.defaultSpawn.room.name, controller.room.name);
@@ -29,7 +31,7 @@ module.exports = {
                 const minerals = controller.room.find(FIND_MINERALS).length;
                 let textNofitication = `Scout found new room ${controller.room.name} (distance: ${distance}, sources: ${sources}, minerals: ${minerals})`;
                 textNofitication += `\nTo claim this controller provide: 'Memory.creeps.${creep.name}.claimAllowed = true'`;
-                // Game.notify(textNofitication);
+                Game.notify(textNofitication);
                 console.log(textNofitication);
             }
 
@@ -44,7 +46,7 @@ module.exports = {
                     const controllerRsrv = creep.room.controller.reservation;
                     if (controllerRsrv === undefined) {
                         creep.say(JSON.stringify(controllerRsrv))
-                        creep.moveToAndPerform(controller, 'signController', SIGN_NOVICE_AREA);
+                        creep.moveToAndPerform(controller, 'signController', SIGN_PLANNED_AREA);
                         creep.moveToAndPerform(controller, 'reserveController')
                     } else {
                         if (controllerRsrv.username === 'tregor' && controllerRsrv.ticksToEnd < 3000) {
@@ -119,6 +121,9 @@ module.exports = {
         const bodyMoveCount = Math.floor(energy / BODYPART_COST[MOVE]);
         for (let i = 0; i < bodyMoveCount; i++) {
             body.push(MOVE);
+        }
+        if (bodyMoveCount === 0){
+            body.push(MOVE); // At least one MOVE
         }
 
         return body;

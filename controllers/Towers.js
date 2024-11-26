@@ -4,6 +4,35 @@ const creepRoles = require('../roles');
 
 const towerController = {
     run: function () {
+
+        for (const roomName in Game.rooms) {
+            const room = Game.rooms[roomName];
+            // Find links and fill them
+
+            const links = room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (structure.structureType === STRUCTURE_LINK)
+                }
+            });
+            const link_controller = room.controller.pos.findClosestByRange(links, 4);
+            if (!link_controller) continue;
+
+            const room_sources = room.find(FIND_SOURCES);
+            for (const source in room_sources){
+                if (room_sources[source].pos === undefined) continue;
+                const link_miner = room_sources[source].pos.findInRange(FIND_STRUCTURES, 4, {
+                    filter: (structure) => {
+                        return (structure.structureType === STRUCTURE_LINK)
+                            && structure.store.getFreeCapacity(RESOURCE_ENERGY) === 0;
+                    }
+                })[0];
+
+                if (link_miner && link_controller){
+                    link_miner.transferEnergy(link_controller);
+                }
+            }
+        }
+
         // Пройдемся по всем башням в комнатах
         for (const roomName in Game.rooms) {
             const room = Game.rooms[roomName];

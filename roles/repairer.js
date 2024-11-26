@@ -7,7 +7,7 @@ module.exports = {
         default: true,
     },
     settings: {
-        minCargoPickup: 0.66,
+        minCargoPickup: 0.1,
     },
     /** @param {Creep} creep **/
     run: function (creep) {

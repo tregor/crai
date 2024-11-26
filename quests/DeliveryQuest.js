@@ -12,7 +12,7 @@ class DeliveryQuest extends Quest {
             const quest = new StockupQuest(creep.id, amount);
             QuestsManager.addQuest(quest)
             QuestsManager.assignQuest(creep, quest)
-            this.status = "error";
+            this.error();
             return;
         }
 
@@ -22,7 +22,7 @@ class DeliveryQuest extends Quest {
             creep.moveByPath(path.path);
             this.buildRoad(creep);
         } else if (result === OK) {
-            this.status = "completed";
+            this.completed();
         }
     }
 

@@ -1,3 +1,6 @@
+/**
+ * Stockup quest is used when creep need to find something and to get it into inventory
+ */
 class StockupQuest extends Quest {
     constructor(target, amount, reward = {experience: 10, coins: 5}) {
         super('default', target, {reward}, 0);
@@ -8,32 +11,32 @@ class StockupQuest extends Quest {
         const target = Game.getObjectById(this.target);
         const resourceType = RESOURCE_ENERGY;
 
+        // TODO: Добавить проверку есть ли у крипа место на столько ресурса
         if (creep.store(resourceType) >= this.amount_goal) {
-            this.status = "completed";
+            this.completed();
             return;
         }
 
         const containers = this.findContainers(target);
-        const droppedResources = this.findDroppedResources(target);
-        const sources = this.findSources(target);
-
         if (containers.length) {
             const nearest = target.pos.findClosestByRange(containers);
             return creep.moveToAndPerform(nearest, 'withdraw', resourceType);
         }
 
+        const droppedResources = this.findDroppedResources(target);
         if (droppedResources.length) {
             const nearest = target.pos.findClosestByRange(droppedResources);
             return creep.moveToAndPerform(nearest, 'pickup', resourceType);
         }
 
+        const sources = this.findSources(target);
         if (sources.length) {
             const nearest = target.pos.findClosestByRange(sources);
             return creep.moveToAndPerform(nearest, 'harvest', resourceType);
         }
 
         // Если ресурсов на карте нет, идем на спавн
-        creep.moveTo(config.flagIdle);
+        creep.moveTo(config.defaultSpawn);
     }
 
     findContainers(target) {

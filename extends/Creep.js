@@ -5,13 +5,14 @@ const creepRoles = require('../roles');
 /**
  * Globally patch creep actions to log error codes.
  */
+
 ["attack", "attackController", "build", "claimController", "dismantle", "drop", "generateSafeMode", "harvest", "heal", "move", "moveByPath", "moveTo", "pickup", "rangedAttack", "rangedHeal", "rangedMassAttack", "repair", "reserveController", "signController", "suicide", "transfer", "upgradeController", "withdraw"].forEach(function (method) {
     let original = Creep.prototype[method];
     // Magic
     Creep.prototype[method] = function () {
         let status = original.apply(this, arguments);
         if (typeof status === "number" && status < 0) {
-            // console.log(`${this.name}.${method}(` + Array.from(arguments).join(", ") + `) failed: ${MSG_ERR[status]} at ${this.pos}`);
+             // console.log(`${this.name}.${method}(` + Array.from(arguments).join(", ") + `) failed: ${MSG_ERR[status]} at ${this.pos}`);
         }
         return status;
     };
@@ -47,7 +48,6 @@ if (typeof Creep.prototype.idleFor !== 'function') {
         }
     };
 }
-// proximo 30 October 2016 at 04:57
 
 /**
  * Creep method optimizations "getActiveBodyparts"
@@ -64,33 +64,33 @@ Creep.prototype.getActiveBodyparts = function (type) {
     return count;
 };
 
-/**
- * Fast check if bodypart exists
- */
-Creep.prototype.hasActiveBodyparts = function (type) {
-    for (var i = this.body.length; i-- > 0;) {
-        if (this.body[i].hits > 0) {
-            if (this.body[i].type === type) {
-                return true;
-            }
-        } else break;
-    }
-    return false;
-};
-
-Creep.prototype.getFullname = function () {
-    if (!this.memory.tier || !this.memory.role) {
-        return this.name;
-    }
-    let role = creepRoles[this.memory.role];
-    let labelRole = (role.roleName.charAt(0).toUpperCase() + role.roleName.slice(1));
-    return `T${this.memory.tier}${labelRole}`;
-}
-Creep.prototype.sing = function (sentence, toAll) {
-    if (toAll === undefined) toAll = true;
-    let words = sentence.split("|");
-    this.say(words[Game.time % words.length], public);
-}
+///**
+// * Fast check if bodypart exists
+// */
+//Creep.prototype.hasActiveBodyparts = function (type) {
+//    for (var i = this.body.length; i-- > 0;) {
+//        if (this.body[i].hits > 0) {
+//            if (this.body[i].type === type) {
+//                return true;
+//            }
+//        } else break;
+//    }
+//    return false;
+//};
+//
+//Creep.prototype.getFullname = function () {
+//    if (!this.memory.tier || !this.memory.role) {
+//        return this.name;
+//    }
+//    let role = creepRoles[this.memory.role];
+//    let labelRole = (role.roleName.charAt(0).toUpperCase() + role.roleName.slice(1));
+//    return `T${this.memory.tier}${labelRole}`;
+//}
+//Creep.prototype.sing = function (sentence, toAll) {
+//    if (toAll === undefined) toAll = true;
+//    let words = sentence.split("|");
+//    this.say(words[Game.time % words.length], public);
+//}
 Creep.prototype.moveToAndPerform = function (target, action, ...args) {
     if (this.fatigue > 0) return OK;//TIRED
     let res = OK;
@@ -107,18 +107,24 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
     }
 
     const moveOpts = {
-        noPathFinding: (Game.cpu.getUsed() >= 20), reusePath: 16, visualizePathStyle: {
+        // noPathFinding: (Game.cpu.getUsed() <= 20),
+        noPathFinding: true,
+        reusePath: 16,
+        visualizePathStyle: {
             fill: undefined, opacity: 0.6, stroke: color, strokeWidth: 0.04, lineStyle: 'dotted',
         },
 
-        ignoreCreeps: false, ignoreDestructibleStructures: false, ignoreRoads: false,
+        ignoreCreeps: true,
+        ignoreDestructibleStructures: false,
+        ignoreRoads: false,
 
         // ignore: [],
         // avoid: [
         //
         // ],
         maxOps: 2000,   // CPU /1000
-        serialize: false, maxRooms: 1, range: 0, plainCost: 1, // swampCost: 5,
+        serializeMemory: true,
+        serialize: false, maxRooms: 16, range: 0, plainCost: 1, // swampCost: 5,
         swampCost: 25,
     };
 
@@ -151,6 +157,7 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
     }
     if (res === ERR_NOT_FOUND) {
         moveOpts.noPathFinding = false;
+        moveOpts.ignoreCreeps = true;
         res = this.moveTo(target, moveOpts);
     }
     if (res === ERR_NO_PATH) {
@@ -162,17 +169,24 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
         res = this.moveTo(target, moveOpts);
     }
 
-    if (typeof res === "number" && res < 0) {
-        console.log(`${this.name} ${action} failed: ${MSG_ERR[res]} at ${this.pos}`);
+    if (res < 0) {
+        console.log(`${this.name}.${action}(`+Array.from(target).join(", ")+`) failed: ${MSG_ERR[res]} at ${this.pos}`);
     }
-    // this.say(res)
     return res;
 };
 
 if (!Creep.prototype._moveTo) {
     Creep.prototype._moveTo = Creep.prototype.moveTo;
     Creep.prototype.moveTo = function (...myArgumentsArray) {
+//        const target = myArgumentsArray[0];
+//        let targetPos = myArgumentsArray;
+//        if (target instanceof RoomPosition) {
+//            targetPos = target;
+//        } else if (target && typeof target.pos !== 'undefined') {
+//            targetPos = target.pos;
+//        }
 
+        // Storing room usage
         const posKey = `${this.pos.x},${this.pos.y}`;
         if (!this.room.memory) {
             this.room.memory = {};
@@ -189,9 +203,53 @@ if (!Creep.prototype._moveTo) {
         //BEFORE
         let returnValue;
         returnValue = this._moveTo.apply(this, myArgumentsArray);
+        this.registerMove(myArgumentsArray);
         //AFTER
+        if (returnValue === ERR_INVALID_TARGET){
+            // console.log(JSON.stringify(myArgumentsArray))
+        }
 
 
         return returnValue;
     };
 }
+
+Creep.prototype.setBirthTick = function(tick = null) {
+    if (!tick){
+        tick = Game.time
+    }
+    this.memory.birthTick = tick;
+    return tick;
+};
+
+Creep.prototype.setDeathTick = function(tick = null) {
+    if (!tick){
+        tick = Game.time + this.ticksToLive
+    }
+    this.memory.deathTick = tick;
+    return tick;
+};
+
+Creep.prototype.getBirthTick = function() {
+    if (!this.memory.birthTick){
+        this.setBirthTick()
+        this.setDeathTick()
+        this.setBirthTick(this.getDeathTick() - CREEP_LIFE_TIME)
+    }
+    return this.memory.birthTick;
+};
+
+Creep.prototype.getDeathTick = function() {
+    return this.memory.deathTick || this.setDeathTick();
+};
+
+Creep.prototype.initialized = function () {
+    return (this.memory.initialized = true);
+};
+Creep.prototype.init = function () {
+    this.setBirthTick();
+    this.setDeathTick();
+    this.setBirthTick(this.getDeathTick() - CREEP_LIFE_TIME)
+    this.say(Game.time - this.getBirthTick())
+    this.memory.initialized = true;
+};

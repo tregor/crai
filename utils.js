@@ -17,20 +17,27 @@ function energyReqForCreep(roleName, tier = 1) {
     return cost;
 }
 
-function setStat(path, value) {
-    _.set(Memory.stats.ticks[Game.time], path, value);
+function setStat(path, value, tick = null) {
+    if (tick === null) {
+        tick = Game.time;
+    }
+    _.set(Memory.stats.ticks[tick], path, value);
 }
 
 
-function addStat(path, value) {
-    _.set(Memory.stats.ticks[Game.time], path, getStat(path) + value);
+function addStat(path, value, tick = null) {
+    if (tick === null) {
+        tick = Game.time;
+    }
+    let stat_value = getStat(path, tick)
+    setStat(path, stat_value + value, tick)
 }
 
 function getStat(path, tick = null) {
     if (tick === null) {
         tick = Game.time;
     }
-    return _.get(Memory.stats.ticks[tick], path) || 0;
+    return _.get(Memory.stats.ticks[tick], path);
 }
 
 function getSumStat(path) {
@@ -62,13 +69,26 @@ function getStatData(key, roomName) {
     const startTick = Math.max(currentTick - config.statsMaxTicks, Math.min(...Object.keys(Memory.stats.ticks)));
     const ticks = Array.from({length: currentTick - startTick + 1}, (_, i) => startTick + i);
 
-    const statData = ticks.map(tick => getStat(path, tick));
+    let sum = 0;
+    let min = Infinity;
+    let max = -Infinity;
+    const statData = [];
+
+    for (const tick of ticks) {
+        const value = getStat(path, tick);
+        statData.push(value);
+        sum += value;
+        if (value < min) min = value;
+        if (value > max) max = value;
+    }
+
+    const avg = (sum / config.statsMaxTicks).toFixed(2);
 
     return {
-        sum: statData.reduce((sum, value) => sum + value, 0),
-        avg: (statData.reduce((sum, value) => sum + value, 0) / config.statsMaxTicks).toFixed(2),
-        min: Math.min(...statData),
-        max: Math.max(...statData),
+        sum,
+        avg,
+        min,
+        max,
         values: statData
     };
 }
@@ -151,7 +171,7 @@ function loadBuildplan(room, plan) {
     if (myConstructionSites.length >= config.maxConstructionSites) return;
 
     for (const [structType, positions] of Object.entries(plan.buildings)) {
-        for (const {x, y} of positions['pos']) {
+        for (const {x, y} of positions) {
             const pos = new RoomPosition(x, y, room.name)
             const objectsAtPos = pos.lookFor(LOOK_CONSTRUCTION_SITES).concat(pos.lookFor(LOOK_STRUCTURES));
             if (objectsAtPos.length === 0) {

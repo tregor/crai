@@ -1,0 +1,2 @@
+global.SCRIPT_VERSION = 70;
+        global.SCRIPT_VERSION_DATE = '11.10.2024, 12:54:24';

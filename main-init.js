@@ -12,7 +12,11 @@ require('extends/Source');
 require('extends/Structure');
 require('extends/StructureObserver');
 
-// Инициализация объекта статистики для текущего тика
+
+const trafficManager = require('controllers/TrafficManager');
+trafficManager.init();
+
+// Инициализация объекта статистики и объкта для текущего тика
 if (!Memory.stats) {
     Memory.stats = {};
 }
@@ -20,11 +24,13 @@ if (!Memory.stats.ticks) {
     Memory.stats.ticks = {};
 }
 if (!Memory.stats.ticks[Game.time]) {
+    //TODO: Создавать не хардкод а дефолтный обьект с заданными ключами
     Memory.stats.ticks[Game.time] = {
         rooms: {},
     };
-}
 
+}
+// TODO: Эти статы нужно перенести глубже, например Memory.stats.alltime.seenRooms
 if (!Memory.stats.seenRooms) {
     Memory.stats.seenRooms = {};
 }
