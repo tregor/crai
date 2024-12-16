@@ -8,8 +8,12 @@ const controllerCreeps = {
             const creep = Game.creeps[name];
             const role = creepRoles[creep.memory.role];
 
-            if(creep.spawning) continue;
-            if(creep.idle) continue;
+            if (creep.spawning) continue;
+            if (creep.idle) {
+                const clockEmojis = ['🕛', '🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚'];
+                creep.say(clockEmojis[Game.time % clockEmojis.length], true);
+                continue;
+            }
 
             // Initing creep's memory
             if (!creep.spawning && !creep.initialized()){

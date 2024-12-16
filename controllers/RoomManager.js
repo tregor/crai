@@ -54,12 +54,14 @@ const RoomManager = {
             }
 
 
-            // 4. Автоматическая стройка дорог по рейтингу
             if (config.drawDistMap) {
                 utils.drawDistanceTransform(room)
             }
+            // 4. Автоматическая стройка дорог по рейтингу
             if (config.drawRoadMap || config.drawHeatMap) {
                 utils.drawRoadUsage(room)
+            }
+            if (config.autobuildRoads) {
                 for (const posKey in room.memory.roadUsage) {
                     if (room.memory.roadUsage[posKey] >= config.roadThreshold) {
                         const [x, y] = posKey.split(",");
@@ -71,9 +73,9 @@ const RoomManager = {
 
                         if (!hasRoad && !hasSome) {
                             room.createConstructionSite(pos, STRUCTURE_ROAD);
-                            Game.notify(`New road was built at ${pos.x},${pos.y} ${roomName}`);
+                            // Game.notify(`AUTOBUILDER: Road was built at ${pos.x},${pos.y} ${roomName}`);
                             // Сбросить счетчик после строительства дороги
-                            room.memory.roadUsage[posKey] = 0;
+                            // room.memory.roadUsage[posKey] = 0;
                         }
                     }
                 }

@@ -23,6 +23,12 @@ module.exports = {
             creep.memory.targetId = null;
         }
 
+        if (creep.pos.isNearTo(config.defaultSpawn)){
+            config.defaultSpawn.renewCreep(creep)
+        }else{
+            creep.moveTo(config.defaultSpawn)
+        }
+
         // Если нет врага, патрулируем комнату
         if (creep.memory.patrolRoom) {
             const exits = Game.map.describeExits(creep.room.name);

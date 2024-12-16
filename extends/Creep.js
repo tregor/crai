@@ -86,11 +86,11 @@ Creep.prototype.getActiveBodyparts = function (type) {
 //    let labelRole = (role.roleName.charAt(0).toUpperCase() + role.roleName.slice(1));
 //    return `T${this.memory.tier}${labelRole}`;
 //}
-//Creep.prototype.sing = function (sentence, toAll) {
-//    if (toAll === undefined) toAll = true;
-//    let words = sentence.split("|");
-//    this.say(words[Game.time % words.length], public);
-//}
+Creep.prototype.sing = function (sentence, toAll) {
+   if (toAll === undefined) toAll = true;
+   let words = sentence.split("|");
+   this.say(words[Game.time % words.length], public);
+}
 Creep.prototype.moveToAndPerform = function (target, action, ...args) {
     if (this.fatigue > 0) return OK;//TIRED
     let res = OK;
@@ -128,7 +128,7 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
         swampCost: 25,
     };
 
-//     this.say(action)
+    // this.say(action)
     if (!this.memory.action || this.memory.action !== action) {
         this.memory.action = action;
     }
@@ -152,20 +152,21 @@ Creep.prototype.moveToAndPerform = function (target, action, ...args) {
         }
     }
 
+    // this.say(res)
     if (res === ERR_NOT_IN_RANGE || !this.pos.isNearTo(target)) {
         res = this.moveTo(target, moveOpts);
     }
     if (res === ERR_NOT_FOUND) {
         moveOpts.noPathFinding = false;
-        moveOpts.ignoreCreeps = true;
+        moveOpts.ignoreCreeps = false;
         res = this.moveTo(target, moveOpts);
     }
     if (res === ERR_NO_PATH) {
         moveOpts.noPathFinding = false;
+        moveOpts.ignoreCreeps = false;
         moveOpts.reusePath = 0;
-        moveOpts.ignoreCreeps = true;
         moveOpts.ignoreDestructibleStructures = true;
-        moveOpts.ignoreRoads = false;
+        moveOpts.ignoreRoads = true;
         res = this.moveTo(target, moveOpts);
     }
 

@@ -9,6 +9,7 @@ require('extends/Room');
 require('extends/RoomObject');
 require('extends/RoomPosition');
 require('extends/Source');
+require('extends/Mineral');
 require('extends/Structure');
 require('extends/StructureObserver');
 

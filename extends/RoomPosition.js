@@ -8,6 +8,10 @@ RoomPosition.serialize = function (pos) {
     return pos.serialize();
 };
 
+RoomPosition.prototype.getXYString = function (delimiter=',') {
+    return `${this.x}${delimiter}${this.y}`;
+};
+
 // https://github.com/ScreepsQuorum/screeps-quorum
 RoomPosition.deserialize = function (string) {
     const roomname = Room.deserializeName(string.slice(0, -1));

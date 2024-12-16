@@ -118,31 +118,36 @@ const spawnerController = {
 
             // Get total number of required creeps for each role
             for (const roleName in creepRolesAvailable) {
-                const role = creepRoles[roleName];
-                const existingCount = roleCounts[roleName] || 0;
-                let successRate = role.getSuccessRate(spawn.room);
-                if (isNaN(successRate)){
-                    successRate = 1;
-                }
-                let desiredCount = 1;
-                if (successRate > 0 && !isNaN(successRate)) {
-                    desiredCount = Math.floor(existingCount / successRate);
-                } else {
-                    desiredCount = 1;
-                }
-                let energyRequired = energyReqForCreep(roleName, tier);
-                let roleTier = Math.min(Math.floor(tier * energyAvailable / energyRequired), tier);
-                let alreadyQueued = _.sum(spawn.memory.spawnQueue, {filter: (creep) => creep.role === roleName && creep.tier === roleTier});
-
-                const spawnCount = desiredCount - existingCount - alreadyQueued;
-                // console.log("T"+roleTier+roleName,"SR:"+Math.round(successRate*100)+"%",desiredCount+" (desired) -"+existingCount+" (existing) ="+spawnCount+" (to spawn)", energyAvailable+" (available) -"+energyQueued+" (queued) /"+energyRequired+" (required)");
-                for (let i = 0; i < spawnCount; i++) {
-                    if (energyAvailable - energyQueued >= energyRequired) {
-                        console.log(`Spawning by Role Rate ${roleName} ${successRate * 100}%  D:${desiredCount} - E:${existingCount} - Q:${alreadyQueued} = S:${spawnCount}`)
-                        addToSpawnQueue(spawn, role.roleName, roleTier, 1);
-                        energyAvailable = energyAvailable - energyRequired;
-                        energyQueued = energyQueued + energyRequired;
+                try {
+                    const role = creepRoles[roleName];
+                    const existingCount = roleCounts[roleName] || 0;
+                    let successRate = role.getSuccessRate(spawn.room);
+                    if (isNaN(successRate)){
+                        successRate = 1;
                     }
+                    let desiredCount = 1;
+                    if (successRate > 0 && !isNaN(successRate)) {
+                        desiredCount = Math.floor(existingCount / successRate);
+                    } else {
+                        desiredCount = 1;
+                    }
+                    let energyRequired = energyReqForCreep(roleName, tier);
+                    let roleTier = Math.min(Math.floor(tier * energyAvailable / energyRequired), tier);
+                    let alreadyQueued = _.sum(spawn.memory.spawnQueue, {filter: (creep) => creep.role === roleName && creep.tier === roleTier});
+
+                    const spawnCount = desiredCount - existingCount - alreadyQueued;
+                    // console.log("T"+roleTier+roleName,"SR:"+Math.round(successRate*100)+"%",desiredCount+" (desired) -"+existingCount+" (existing) ="+spawnCount+" (to spawn)", energyAvailable+" (available) -"+energyQueued+" (queued) /"+energyRequired+" (required)");
+                    for (let i = 0; i < spawnCount; i++) {
+                        if (energyAvailable - energyQueued >= energyRequired) {
+                            console.log(`Spawning by Role Rate ${roleName} ${successRate * 100}%  D:${desiredCount} - E:${existingCount} - Q:${alreadyQueued} = S:${spawnCount}`)
+                            addToSpawnQueue(spawn, role.roleName, roleTier, 1);
+                            energyAvailable = energyAvailable - energyRequired;
+                            energyQueued = energyQueued + energyRequired;
+                        }
+                    }
+                } catch (e) {
+                    console.log(roleName)
+                    throw e
                 }
             }
         }

@@ -1,4 +1,4 @@
-Object.defineProperty(Source.prototype, 'freeSpaceCount', {
+Object.defineProperty(Mineral.prototype, 'freeSpaceCount', {
     get: function () {
         return this.calculateFreeSpaces().freeSpaceCount;
     },
@@ -6,7 +6,7 @@ Object.defineProperty(Source.prototype, 'freeSpaceCount', {
     configurable: true
 });
 
-Object.defineProperty(Source.prototype, 'freeCells', {
+Object.defineProperty(Mineral.prototype, 'freeCells', {
     get: function () {
         return this.calculateFreeSpaces().freeCells;
     },
@@ -14,20 +14,19 @@ Object.defineProperty(Source.prototype, 'freeCells', {
     configurable: true
 });
 
-// Метод для вычисления свободных ячеек и их количества без кеширования
-Source.prototype.calculateFreeSpaces = function () {
+Mineral.prototype.calculateFreeSpaces = function () {
     let freeSpaceCount = 0;
     let freeCells = [];
     const terrain = Game.map.getRoomTerrain(this.pos.roomName);
 
     for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
-            if (dx === 0 && dy === 0) continue; // Игнорируем позицию самого источника
+            if (dx === 0 && dy === 0) continue;
             const x = this.pos.x + dx;
             const y = this.pos.y + dy;
             if (terrain.get(x, y) !== TERRAIN_MASK_WALL) {
                 const position = new RoomPosition(x, y, this.pos.roomName);
-                if (!isPositionWalkable(position)) {
+                if (isPositionWalkable(position)) {
                     freeSpaceCount++;
                     freeCells.push(position);
                 }

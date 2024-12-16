@@ -195,7 +195,7 @@ function drawRoadUsage(room) {
     for (const posKey in room.memory.roadUsage) {
         const [x, y] = posKey.split(",");
         const pos = new RoomPosition(parseInt(x), parseInt(y), room.name);
-        const usage = room.memory.roadUsage[posKey];
+        const usage = room.memory.roadUsage[pos.getXYString()];
 
         // Вычисляем usageRate от 1 до 100
         const usageRate = Math.ceil((usage / maxUsage) * countAccuracy);

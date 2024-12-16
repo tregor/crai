@@ -26,9 +26,10 @@ module.exports = {
                 });
                 if (structsConstruct.length > 0) {
                     structsConstruct.sort((a, b) => b.progress - a.progress); // Sort by most progress first
-                    const topStructs = structsConstruct.slice(0, 3);
-                    const closestStruct = creep.pos.findClosestByRange(topStructs);
-                    creep.moveToAndPerform(closestStruct, 'build');
+                    creep.moveToAndPerform(structsConstruct[0], 'build');
+                    // const topStructs = structsConstruct.slice(0, 3);
+                    // const closestStruct = creep.pos.findClosestByRange(topStructs);
+                    // creep.moveToAndPerform(closestStruct, 'build');
                     return;
                 }
             }
